@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Hôtels & Hébergements — RT Voyage{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Hébergements</span></nav>
+    <h1 class="page-hero__title">{% if current_lang=='en' %}Hotels & Accommodations{% else %}Hôtels & Hébergements{% endif %}</h1>
+    <p class="page-hero__sub">{{ pagination.total }} hébergements sélectionnés</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="filter-bar">
+      <form method="GET" style="display:contents;">
+        <input type="text" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="Rechercher un hôtel…" style="min-width:220px;max-width:320px;">
+        <select name="dest" class="form-control" style="max-width:200px;">
+          <option value="">Toutes destinations</option>
+          {% for dest in destinations %}
+          <option value="{{ dest.id }}" {{ 'selected' if request.args.get('dest')|int == dest.id }}>{{ dest.name_fr }}</option>
+          {% endfor %}
+        </select>
+        <select name="type" class="form-control" style="max-width:160px;">
+          <option value="">Tous types</option>
+          {% for t, lbl in [('hotel','Hôtel'),('riad','Riad'),('villa','Villa'),('resort','Resort'),('hostel','Hostel'),('apartment','Appartement')] %}
+          <option value="{{ t }}" {{ 'selected' if request.args.get('type')==t }}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+        <div style="display:flex;gap:6px;">
+          {% for stars in [5,4,3] %}
+          <a href="{{ url_for('hotels.list_hotels', stars=stars)|safe }}" class="btn btn-sm {{ 'btn-gold' if request.args.get('stars')|int == stars else 'btn-ghost' }}">
+            {% for _ in range(stars) %}★{% endfor %}
+          </a>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-gold btn-sm"><i class="fa fa-search"></i> Filtrer</button>
+      </form>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:32px;">
+      {% for hotel in hotels %}
+      <a href="{{ url_for('hotels.detail', slug=hotel.slug) }}" class="card" style="text-decoration:none;display:block;overflow:hidden;transition:transform 0.3s,box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 48px rgba(201,169,110,0.12)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="position:relative;height:210px;overflow:hidden;">
+          <img src="{{ hotel.image_main or url_for('static',filename='images/placeholder-hotel.jpg') }}" alt="{{ hotel.name }}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+          <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;">
+            <span class="badge badge-gold">{{ hotel.hotel_type | title }}</span>
+            {% if hotel.is_partner %}<span class="badge badge-success">Partenaire</span>{% endif %}
+          </div>
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(5,8,16,0.85));padding:20px 16px 14px;">
+            <div style="display:flex;gap:2px;">
+              {% for i in range(hotel.stars or 0) %}<span style="color:var(--gold);font-size:0.75rem;">★</span>{% endfor %}
+            </div>
+          </div>
+        </div>
+        <div style="padding:18px 20px;">
+          <h3 style="font-size:1rem;font-weight:700;color:var(--text-light);margin-bottom:4px;">{{ hotel.name }}</h3>
+          <p style="font-size:0.78rem;color:var(--text-sub);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i class="fa fa-map-marker-alt" style="color:var(--gold);font-size:0.7rem;"></i>{{ hotel.destination.name_fr if hotel.destination else '—' }}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+            {% if hotel.has_pool %}<span style="font-size:0.68rem;padding:3px 8px;background:var(--bg-card2);border-radius:10px;color:var(--text-sub);"><i class="fa fa-swimming-pool"></i> Piscine</span>{% endif %}
+            {% if hotel.has_spa %}<span style="font-size:0.68rem;padding:3px 8px;background:var(--bg-card2);border-radius:10px;color:var(--text-sub);"><i class="fa fa-spa"></i> Spa</span>{% endif %}
+            {% if hotel.has_wifi %}<span style="font-size:0.68rem;padding:3px 8px;background:var(--bg-card2);border-radius:10px;color:var(--text-sub);"><i class="fa fa-wifi"></i> WiFi</span>{% endif %}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <span style="font-size:0.68rem;color:var(--text-sub);">À partir de</span>
+              <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;line-height:1;">{{ hotel.price_from or '—' }} <span style="font-size:0.7rem;font-family:var(--font-sans);color:var(--text-sub);">MAD/nuit</span></p>
+            </div>
+            <span class="btn btn-outline btn-sm">Voir</span>
+          </div>
+        </div>
+      </a>
+      {% else %}
+      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">Aucun hébergement trouvé.</p>
+      {% endfor %}
+    </div>
+    {% include 'partials/_pagination.html' %}
+  </div>
+</section>
+{% endblock %}
