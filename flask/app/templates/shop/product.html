@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name_fr }} — Boutique RT Voyage{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><a href="{{ url_for('shop.index') }}">Boutique</a><span>/</span><span>{{ product.name_fr | truncate(30) }}</span></nav>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;margin-bottom:48px;">
+      <div>
+        <div style="background:var(--bg-card);border:1px solid var(--border-dark);border-radius:var(--radius-md);overflow:hidden;height:420px;">
+          <img src="{{ product.image_main or url_for('static',filename='images/product-placeholder.jpg') }}" alt="{{ product.name_fr }}" style="width:100%;height:100%;object-fit:contain;padding:20px;" id="mainProductImg">
+        </div>
+        {% if product.medias %}
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          {% for media in product.medias %}
+          <button onclick="document.getElementById('mainProductImg').src='{{ media.file_path }}'" style="width:72px;height:72px;border:2px solid var(--border-dark);border-radius:var(--radius-sm);overflow:hidden;background:none;cursor:pointer;padding:0;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border-dark)'">
+            <img src="{{ media.file_path }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+          </button>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div>
+        <p style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);margin-bottom:10px;">{{ product.category.name_fr if product.category else '—' }}</p>
+        <h1 style="font-family:var(--font-serif);font-size:clamp(1.6rem,3vw,2.2rem);color:var(--text-light);font-weight:700;margin-bottom:16px;">{{ (product.name_fr if current_lang=='fr' else product.name_en) or product.name_fr }}</h1>
+        <div style="margin-bottom:24px;">
+          {% if product.price_discounted and product.price_discounted < product.price %}
+          <p style="font-family:var(--font-serif);font-size:2.4rem;color:var(--gold);font-weight:700;line-height:1;">{{ product.price_discounted }} <span style="font-size:0.8rem;font-family:var(--font-sans);color:var(--text-sub);">MAD</span></p>
+          <p style="font-size:0.88rem;color:var(--text-sub);text-decoration:line-through;margin-top:4px;">{{ product.price }} MAD</p>
+          {% else %}
+          <p style="font-family:var(--font-serif);font-size:2.4rem;color:var(--gold);font-weight:700;line-height:1;">{{ product.price }} <span style="font-size:0.8rem;font-family:var(--font-sans);color:var(--text-sub);">MAD</span></p>
+          {% endif %}
+        </div>
+        <div style="font-size:0.9rem;line-height:1.8;color:var(--text-muted);margin-bottom:28px;">
+          {{ ((product.description_fr if current_lang=='fr' else product.description_en) or product.description_fr or '') | safe }}
+        </div>
+        {% if product.stock is not none %}
+        <p style="font-size:0.78rem;margin-bottom:16px;color:{{ 'var(--gold)' if product.stock > 0 else '#c0392b' }};">
+          <i class="fa {{ 'fa-check-circle' if product.stock > 0 else 'fa-times-circle' }}"></i>
+          {{ ('En stock (' ~ product.stock ~ ' disponibles)') if product.stock > 0 else 'Rupture de stock' }}
+        </p>
+        {% endif %}
+        {% if product.stock != 0 %}
+          {% if product.is_affiliate and product.affiliate_url %}
+          <a href="{{ product.affiliate_url }}" target="_blank" rel="noopener sponsored" class="btn btn-gold" style="font-size:1rem;padding:14px 32px;">
+            <i class="fa fa-external-link-alt"></i> Acheter (partenaire)
+          </a>
+          {% else %}
+          <button class="btn btn-gold" style="font-size:1rem;padding:14px 32px;">
+            <i class="fa fa-shopping-cart"></i> Ajouter au panier
+          </button>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {% if related %}
+    <div>
+      <h2 style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);margin-bottom:24px;">Produits similaires</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;">
+        {% for rp in related %}
+        <a href="{{ url_for('shop.product_detail', slug=rp.slug) }}" class="card" style="text-decoration:none;overflow:hidden;">
+          <img src="{{ rp.image_main or url_for('static',filename='images/product-placeholder.jpg') }}" alt="{{ rp.name_fr }}" style="width:100%;height:160px;object-fit:cover;" loading="lazy">
+          <div style="padding:14px 16px;">
+            <p style="font-size:0.88rem;font-weight:600;color:var(--text-light);margin-bottom:6px;">{{ rp.name_fr | truncate(40) }}</p>
+            <p style="font-family:var(--font-serif);font-size:1.1rem;color:var(--gold);">{{ rp.price_discounted or rp.price }} MAD</p>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
