@@ -1,0 +1,57 @@
+{% extends "admin/base.html" %}
+{% block title %}Témoignages — Admin{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Témoignages</h1></div>
+
+{% if pending %}
+<div class="admin-box" style="margin-bottom:24px;">
+  <div class="admin-box__header"><span class="admin-box__title" style="color:#f39c12;"><i class="fa fa-clock"></i> En attente d'approbation ({{ pending|length }})</span></div>
+  <div class="admin-box__body" style="padding:0;">
+    {% for t in pending %}
+    <div style="padding:16px 22px;border-bottom:1px solid var(--border-dark);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <strong style="font-size:0.88rem;">{{ t.client_name }}</strong>
+          {% if t.client_country %}<span style="font-size:0.76rem;color:var(--text-muted);"> — {{ t.client_country }}</span>{% endif %}
+          <span style="color:var(--gold);margin-left:10px;font-size:0.84rem;">{{ '★' * t.rating }}</span>
+        </div>
+        <span style="font-size:0.74rem;color:var(--text-sub);">{{ t.created_at.strftime('%d/%m/%Y') }}</span>
+      </div>
+      <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:12px;font-style:italic;">"{{ t.comment }}"</p>
+      <div style="display:flex;gap:8px;">
+        <form action="{{ url_for('admin.testimonial_approve', t_id=t.id) }}" method="POST" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-sm" style="background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.3);color:#2ecc71;" type="submit"><i class="fa fa-check"></i> Approuver</button>
+        </form>
+        <form action="{{ url_for('admin.testimonial_delete', t_id=t.id) }}" method="POST" onsubmit="return confirm('Supprimer ?');" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i> Refuser</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="admin-box">
+  <div class="admin-box__header"><span class="admin-box__title"><i class="fa fa-check-circle" style="color:var(--success);"></i> Approuvés ({{ approved|length }})</span></div>
+  <div class="admin-box__body" style="padding:0;">
+    {% for t in approved %}
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border-dark);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <strong style="font-size:0.86rem;">{{ t.client_name }}</strong>
+        <span style="color:var(--gold);margin-left:8px;font-size:0.8rem;">{{ '★' * t.rating }}</span>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">{{ t.comment | truncate(80) }}</p>
+      </div>
+      <form action="{{ url_for('admin.testimonial_delete', t_id=t.id) }}" method="POST" onsubmit="return confirm('Supprimer ce témoignage ?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-ghost btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+      </form>
+    </div>
+    {% else %}
+    <p style="padding:24px;text-align:center;color:var(--text-sub);">Aucun témoignage approuvé</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

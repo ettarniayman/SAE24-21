@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Politique de Confidentialité — RT Voyage{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Confidentialité</span></nav>
+    <h1 class="page-hero__title">Politique de Confidentialité</h1>
+  </div>
+</div>
+<section class="section">
+  <div class="container" style="max-width:760px;margin:0 auto;">
+    <div class="card" style="padding:48px;">
+      <div style="font-size:0.9rem;line-height:1.85;color:var(--text-muted);">
+        <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:0 0 12px;">Collecte de données</h2>
+        <p>RT Voyage collecte des données personnelles uniquement dans le cadre de la fourniture de ses services : réservations de voyages, newsletters, prise de contact. Les données collectées sont : nom, prénom, adresse email, téléphone, et préférences de voyage.</p>
+
+        <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Utilisation des données</h2>
+        <p>Vos données sont utilisées exclusivement pour :</p>
+        <ul style="margin:12px 0 12px 20px;display:flex;flex-direction:column;gap:6px;">
+          <li>Traiter vos demandes de voyages et réservations</li>
+          <li>Vous envoyer des informations et promotions (avec votre consentement)</li>
+          <li>Améliorer nos services et votre expérience utilisateur</li>
+          <li>Respecter nos obligations légales</li>
+        </ul>
+
+        <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Cookies</h2>
+        <p>Notre site utilise des cookies techniques essentiels (session, langue) et des cookies analytiques pour améliorer l'expérience. Vous pouvez les désactiver dans les paramètres de votre navigateur.</p>
+
+        <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Vos droits</h2>
+        <p>Conformément à la loi 09-08 relative à la protection des personnes physiques à l'égard du traitement des données à caractère personnel (Maroc), vous disposez d'un droit d'accès, de rectification, d'opposition et de suppression de vos données. Pour exercer ces droits : <a href="mailto:privacy@rtvoyage.ma" style="color:var(--gold);">privacy@rtvoyage.ma</a>.</p>
+
+        <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Sécurité</h2>
+        <p>Nous mettons en œuvre des mesures techniques et organisationnelles pour protéger vos données : chiffrement HTTPS, hachage des mots de passe (bcrypt), accès restreint aux données sensibles.</p>
+
+        <p style="margin-top:40px;font-size:0.78rem;color:var(--text-sub);">Dernière mise à jour : {{ now.strftime('%d/%m/%Y') if now else 'Juin 2025' }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

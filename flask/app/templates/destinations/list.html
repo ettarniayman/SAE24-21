@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{% if current_lang=='fr' %}Toutes les Destinations — RT Voyage{% else %}All Destinations — RT Voyage{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="page-hero">
+  <div class="breadcrumb">
+    <a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a>
+    <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
+    <span class="breadcrumb__current">{% if current_lang=='fr' %}Destinations{% else %}Destinations{% endif %}</span>
+  </div>
+  <p class="page-hero__tag">{% if current_lang=='fr' %}Explorez le monde{% else %}Explore the world{% endif %}</p>
+  <h1 class="page-hero__title">{% if current_lang=='fr' %}Toutes nos <span style="color:var(--gold)">Destinations</span>{% else %}All our <span style="color:var(--gold)">Destinations</span>{% endif %}</h1>
+  <p class="page-hero__sub">{% if current_lang=='fr' %}{{ pagination.total }} destinations disponibles pour votre prochain voyage.{% else %}{{ pagination.total }} destinations available for your next trip.{% endif %}</p>
+</div>
+
+<section class="section section--sm">
+  {# Filter bar #}
+  <form class="filter-bar" method="GET" action="" id="filterForm">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <i class="fa fa-search" style="color:var(--text-sub);"></i>
+      <input type="text" name="q" value="{{ search }}" class="filter-input"
+             placeholder="{% if current_lang=='fr' %}Rechercher une destination…{% else %}Search a destination…{% endif %}"
+             id="searchInput">
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <label for="countryFilter">{% if current_lang=='fr' %}Pays{% else %}Country{% endif %}</label>
+      <select name="country" id="countryFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="">{% if current_lang=='fr' %}Tous{% else %}All{% endif %}</option>
+        {% for c in countries %}
+          <option value="{{ c.id }}" {% if current_country == c.id %}selected{% endif %}>
+            {{ c.flag_emoji or '' }} {{ c.name_fr }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-toggle" role="group" aria-label="Type de destination">
+      <button type="submit" name="type" value="" class="{{ 'active' if not current_type }}">
+        {% if current_lang=='fr' %}Tout{% else %}All{% endif %}
+      </button>
+      <button type="submit" name="type" value="city" class="{{ 'active' if current_type=='city' }}">
+        <i class="fa fa-city"></i> {% if current_lang=='fr' %}Villes{% else %}Cities{% endif %}
+      </button>
+      <button type="submit" name="type" value="nature" class="{{ 'active' if current_type=='nature' }}">
+        <i class="fa fa-leaf"></i> Nature
+      </button>
+      <button type="submit" name="type" value="desert" class="{{ 'active' if current_type=='desert' }}">
+        <i class="fa fa-sun"></i> {% if current_lang=='fr' %}Désert{% else %}Desert{% endif %}
+      </button>
+      <button type="submit" name="type" value="mountain" class="{{ 'active' if current_type=='mountain' }}">
+        <i class="fa fa-mountain"></i> {% if current_lang=='fr' %}Montagne{% else %}Mountain{% endif %}
+      </button>
+      <button type="submit" name="type" value="beach" class="{{ 'active' if current_type=='beach' }}">
+        <i class="fa fa-umbrella-beach"></i> {% if current_lang=='fr' %}Plage{% else %}Beach{% endif %}
+      </button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <label for="sortFilter">{% if current_lang=='fr' %}Tri{% else %}Sort{% endif %}</label>
+      <select name="sort" id="sortFilter" class="filter-select" onchange="this.form.submit()">
+        <option value="featured" {% if current_sort=='featured' %}selected{% endif %}>{% if current_lang=='fr' %}Recommandés{% else %}Featured{% endif %}</option>
+        <option value="popular" {% if current_sort=='popular' %}selected{% endif %}>{% if current_lang=='fr' %}Populaires{% else %}Popular{% endif %}</option>
+        <option value="budget" {% if current_sort=='budget' %}selected{% endif %}>{% if current_lang=='fr' %}Budget{% else %}Budget{% endif %}</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-gold btn-sm">
+      <i class="fa fa-filter"></i>
+      {% if current_lang=='fr' %}Filtrer{% else %}Filter{% endif %}
+    </button>
+    {% if search or current_type or current_country %}
+      <a href="{{ url_for('destinations.list_destinations') }}" class="btn btn-ghost btn-sm">
+        <i class="fa fa-times"></i>
+        {% if current_lang=='fr' %}Effacer{% else %}Clear{% endif %}
+      </a>
+    {% endif %}
+  </form>
+
+  {# Results count #}
+  <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">
+    {{ pagination.total }} {% if current_lang=='fr' %}destination(s) trouvée(s){% else %}destination(s) found{% endif %}
+    {% if search %} pour « {{ search }} »{% endif %}
+  </p>
+
+  {# Grid #}
+  {% if destinations %}
+    <div class="grid grid-auto" data-filter-grid>
+      {% for dest in destinations %}
+        {% with dest=dest %}{% include 'partials/_destination_card.html' %}{% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align:center;padding:80px 0;">
+      <i class="fa fa-map-location-dot" style="font-size:3rem;color:var(--gold-dim);margin-bottom:20px;display:block;"></i>
+      <p style="font-size:1.1rem;color:var(--text-muted);">{% if current_lang=='fr' %}Aucune destination trouvée.{% else %}No destination found.{% endif %}</p>
+      <a href="{{ url_for('destinations.list_destinations') }}" class="btn btn-outline" style="margin-top:20px;">
+        {% if current_lang=='fr' %}Réinitialiser{% else %}Reset{% endif %}
+      </a>
+    </div>
+  {% endif %}
+
+  {% include 'partials/_pagination.html' %}
+</section>
+
+{% endblock %}

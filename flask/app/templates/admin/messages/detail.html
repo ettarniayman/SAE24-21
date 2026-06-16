@@ -1,0 +1,34 @@
+{% extends "admin/base.html" %}
+{% block title %}Message de {{ msg.first_name }} — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Message <span>#{{ msg.id }}</span></h1>
+  <a href="{{ url_for('admin.message_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Retour</a>
+</div>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;max-width:1000px;">
+  <div class="admin-box">
+    <div class="admin-box__header">
+      <span class="admin-box__title">{{ msg.subject }}</span>
+      <span class="badge {{ 'badge-success' if msg.is_replied else 'badge-muted' }}">{{ 'Répondu' if msg.is_replied else 'En attente' }}</span>
+    </div>
+    <div class="admin-box__body">
+      <p style="font-size:0.94rem;color:var(--text-white);line-height:1.8;white-space:pre-wrap;">{{ msg.message }}</p>
+    </div>
+  </div>
+  <div>
+    <div class="admin-box">
+      <div class="admin-box__header"><span class="admin-box__title">Expéditeur</span></div>
+      <div class="admin-box__body">
+        <p style="font-size:0.88rem;font-weight:600;margin-bottom:8px;">{{ msg.first_name }} {{ msg.last_name }}</p>
+        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:4px;"><i class="fa fa-envelope" style="color:var(--gold);width:18px;"></i> {{ msg.email }}</p>
+        {% if msg.phone %}<p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:4px;"><i class="fa fa-phone" style="color:var(--gold);width:18px;"></i> {{ msg.phone }}</p>{% endif %}
+        {% if msg.destination_interest %}<p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:4px;"><i class="fa fa-map-pin" style="color:var(--gold);width:18px;"></i> {{ msg.destination_interest }}</p>{% endif %}
+        <p style="font-size:0.78rem;color:var(--text-sub);margin-top:10px;">{{ msg.created_at.strftime('%d/%m/%Y à %H:%M') }}</p>
+        <a href="mailto:{{ msg.email }}?subject=Re: {{ msg.subject }}&body=Bonjour {{ msg.first_name }},%0D%0A%0D%0A" class="btn btn-gold" style="width:100%;justify-content:center;margin-top:16px;">
+          <i class="fa fa-reply"></i> Répondre
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% block title %}Promotions — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Promotions <span>({{ promos|length }})</span></h1>
+  <a href="{{ url_for('admin.promotion_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouvelle promotion</a>
+</div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Titre</th><th>Type</th><th>Réduction</th><th>Code</th><th>Validité</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for promo in promos %}
+        <tr>
+          <td style="font-weight:600;font-size:0.88rem;">{{ promo.title_fr }}</td>
+          <td><span class="badge badge-gold">{{ promo.promo_type }}</span></td>
+          <td style="font-size:0.84rem;color:var(--gold);">{% if promo.discount_percent %}-{{ promo.discount_percent }}%{% elif promo.promo_price %}{{ promo.promo_price }}€{% else %}—{% endif %}</td>
+          <td style="font-family:monospace;font-size:0.82rem;color:var(--text-muted);">{{ promo.promo_code or '—' }}</td>
+          <td style="font-size:0.78rem;color:var(--text-sub);">{% if promo.valid_until %}jusqu'au {{ promo.valid_until.strftime('%d/%m/%Y') }}{% else %}Indéfinie{% endif %}</td>
+          <td><span class="badge {{ 'badge-success' if promo.is_active else 'badge-danger' }}">{{ 'Active' if promo.is_active else 'Inactive' }}</span></td>
+          <td><div class="actions">
+            <a href="{{ url_for('admin.promotion_edit', promo_id=promo.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-pen"></i></a>
+            <form action="{{ url_for('admin.promotion_delete', promo_id=promo.id) }}" method="POST" onsubmit="return confirm('Supprimer ?');" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+            </form>
+          </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-sub);">Aucune promotion</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

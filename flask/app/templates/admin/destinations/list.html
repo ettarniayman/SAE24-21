@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% block title %}Destinations — Admin RT Voyage{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Destinations <span>({{ pagination.total }})</span></h1>
+  <a href="{{ url_for('admin.dest_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouvelle destination</a>
+</div>
+
+<div class="admin-box">
+  <div class="admin-box__header">
+    <form method="GET" style="display:flex;gap:10px;align-items:center;flex:1;">
+      <input type="text" name="q" value="{{ search }}" class="filter-input" placeholder="Rechercher…" style="max-width:300px;">
+      <button type="submit" class="btn btn-gold btn-sm"><i class="fa fa-search"></i></button>
+      {% if search %}<a href="{{ url_for('admin.dest_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-times"></i></a>{% endif %}
+    </form>
+  </div>
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead>
+        <tr><th>Nom</th><th>Pays</th><th>Type</th><th>Budget</th><th>Statut</th><th>Vues</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for dest in destinations %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              {% if dest.image_main %}
+                <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="" style="width:44px;height:32px;object-fit:cover;border-radius:4px;">
+              {% endif %}
+              <div>
+                <p style="font-weight:600;font-size:0.88rem;">{{ dest.name_fr }}</p>
+                <p style="font-size:0.72rem;color:var(--text-sub);">/{{ dest.slug }}</p>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ dest.country.name_fr if dest.country else '—' }}</td>
+          <td><span class="badge badge-gold">{{ dest.destination_type }}</span></td>
+          <td style="font-size:0.84rem;">{% if dest.average_budget_eur %}{{ dest.average_budget_eur }}€{% else %}—{% endif %}</td>
+          <td>
+            <span class="badge {{ 'badge-success' if dest.is_active else 'badge-danger' }}">{{ 'Actif' if dest.is_active else 'Inactif' }}</span>
+            {% if dest.is_featured %}<span class="badge badge-gold" style="margin-left:4px;">Vedette</span>{% endif %}
+          </td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ dest.view_count or 0 }}</td>
+          <td>
+            <div class="actions">
+              <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" class="btn btn-ghost btn-sm" target="_blank" title="Voir"><i class="fa fa-eye"></i></a>
+              <a href="{{ url_for('admin.dest_edit', dest_id=dest.id) }}" class="btn btn-outline btn-sm" title="Modifier"><i class="fa fa-pen"></i></a>
+              {% if current_user.is_admin() %}
+              <form action="{{ url_for('admin.dest_delete', dest_id=dest.id) }}" method="POST" onsubmit="return confirm('Supprimer {{ dest.name_fr }} ?');" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger btn-sm" type="submit" title="Supprimer"><i class="fa fa-trash"></i></button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-sub);">Aucune destination</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

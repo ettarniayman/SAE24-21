@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}À Propos — RT Voyage{% endblock %}
+
+{% block content %}
+<div class="page-hero" style="background:linear-gradient(135deg,var(--bg-deep) 0%,#0d1022 100%);">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>À propos</span></nav>
+    <h1 class="page-hero__title">{% if current_lang=='en' %}About RT Voyage{% else %}À Propos de RT Voyage{% endif %}</h1>
+    <p class="page-hero__sub">Votre partenaire de confiance pour explorer le monde</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-bottom:80px;">
+      <div>
+        <p class="s-tag">Notre Histoire</p>
+        <h2 class="s-title" style="text-align:left;">L'Aventure <em>RT Voyage</em></h2>
+        <div class="gold-div"></div>
+        <p style="font-size:0.95rem;line-height:1.85;color:var(--text-muted);margin-bottom:20px;">Fondée avec la passion du voyage et l'ambition d'offrir des expériences inoubliables, RT Voyage est née de la conviction que chaque voyage doit être une œuvre d'art — soigneusement conçue, méticuleusement organisée, et profondément humaine.</p>
+        <p style="font-size:0.95rem;line-height:1.85;color:var(--text-muted);">De Marrakech à Tokyo, de l'Atlas au Sahara, notre équipe d'experts vous accompagne à chaque étape de votre aventure avec un service personnalisé de premier plan.</p>
+      </div>
+      <div style="position:relative;">
+        <img src="{{ url_for('static', filename='images/about-hero.jpg') }}" alt="RT Voyage" style="width:100%;border-radius:var(--radius-md);object-fit:cover;height:420px;" onerror="this.style.background='var(--bg-card)';this.style.display='block'">
+        <div style="position:absolute;bottom:-24px;left:-24px;background:var(--bg-card);border:1px solid var(--gold-border);border-radius:var(--radius-sm);padding:20px 28px;backdrop-filter:blur(12px);">
+          <p style="font-family:var(--font-serif);font-size:2.4rem;color:var(--gold);font-weight:700;line-height:1;">{{ voyages_count or '500' }}+</p>
+          <p style="font-size:0.76rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);">Voyages réalisés</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-bottom:80px;">
+      {% for n, label, ico in [('80+','Destinations','fa-globe'),('98%','Clients satisfaits','fa-star'),('15+','Années d\'expérience','fa-award'),('24/7','Support disponible','fa-headset')] %}
+      <div class="card" style="text-align:center;padding:36px 20px;">
+        <i class="fa {{ ico }}" style="font-size:1.8rem;color:var(--gold);margin-bottom:12px;"></i>
+        <p style="font-family:var(--font-serif);font-size:2.4rem;color:var(--gold);font-weight:700;">{{ n }}</p>
+        <p style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-sub);margin-top:6px;">{{ label }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="margin-bottom:80px;">
+      <div style="text-align:center;margin-bottom:48px;">
+        <p class="s-tag">L'équipe</p>
+        <h2 class="s-title">Notre Équipe d'Experts</h2>
+        <div class="gold-div" style="margin:16px auto;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;">
+        {% for name, role, emoji in [('Rachid Tanostrong','Directeur Général','🌍'),('Aicha Benali','Responsable Produits','✈️'),('Karim El Fassi','Expert Destinations','🗺️')] %}
+        <div class="card" style="text-align:center;padding:36px 24px;">
+          <div style="width:80px;height:80px;border-radius:50%;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;">{{ emoji }}</div>
+          <p style="font-size:1.05rem;font-weight:700;color:var(--text-light);margin-bottom:4px;">{{ name }}</p>
+          <p style="font-size:0.78rem;color:var(--gold);">{{ role }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

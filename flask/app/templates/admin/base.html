@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Administration — RT Voyage{% endblock %}</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="admin-layout">
+
+  {# ── Sidebar ── #}
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">
+      RT<span>Voyage</span>
+      <div style="font-size:0.6rem;color:var(--text-sub);font-family:var(--font-sans);font-weight:400;margin-top:2px;letter-spacing:0.08em;">Administration</div>
+    </div>
+
+    <div class="admin-sidebar__section">Principal</div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}">
+        <i class="fa fa-gauge"></i> Dashboard
+      </a>
+    </nav>
+
+    <div class="admin-sidebar__section">Contenu</div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin.dest_list') }}" class="{{ 'active' if 'dest' in (request.endpoint or '') }}">
+        <i class="fa fa-map-location-dot"></i> Destinations
+      </a>
+      <a href="{{ url_for('admin.program_list') }}" class="{{ 'active' if 'program' in (request.endpoint or '') }}">
+        <i class="fa fa-route"></i> Programmes
+      </a>
+      <a href="{{ url_for('admin.hotel_list') }}" class="{{ 'active' if 'hotel' in (request.endpoint or '') }}">
+        <i class="fa fa-hotel"></i> Hôtels
+      </a>
+      <a href="{{ url_for('admin.blog_list') }}" class="{{ 'active' if 'blog' in (request.endpoint or '') }}">
+        <i class="fa fa-pen-nib"></i> Blog
+      </a>
+      <a href="{{ url_for('admin.promotion_list') }}" class="{{ 'active' if 'promotion' in (request.endpoint or '') }}">
+        <i class="fa fa-tag"></i> Promotions
+      </a>
+    </nav>
+
+    <div class="admin-sidebar__section">CRM</div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin.booking_list') }}" class="{{ 'active' if 'booking' in (request.endpoint or '') }}">
+        <i class="fa fa-calendar-check"></i> Réservations
+      </a>
+      <a href="{{ url_for('admin.message_list') }}" class="{{ 'active' if 'message' in (request.endpoint or '') }}">
+        <i class="fa fa-envelope"></i> Messages
+        {% set unread = stats.messages if stats is defined and stats.messages is defined else 0 %}
+        {% if unread > 0 %}<span style="background:var(--accent-red);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:auto;">{{ unread }}</span>{% endif %}
+      </a>
+      <a href="{{ url_for('admin.testimonial_list') }}" class="{{ 'active' if 'testimonial' in (request.endpoint or '') }}">
+        <i class="fa fa-star"></i> Témoignages
+      </a>
+      <a href="{{ url_for('admin.newsletter_list') }}" class="{{ 'active' if 'newsletter' in (request.endpoint or '') }}">
+        <i class="fa fa-paper-plane"></i> Newsletter
+      </a>
+    </nav>
+
+    <div class="admin-sidebar__section">Paramètres</div>
+    <nav class="admin-nav">
+      <a href="{{ url_for('admin.faq_list') }}" class="{{ 'active' if 'faq' in (request.endpoint or '') }}">
+        <i class="fa fa-circle-question"></i> FAQ
+      </a>
+      <a href="{{ url_for('admin.rss_list') }}" class="{{ 'active' if 'rss' in (request.endpoint or '') }}">
+        <i class="fa fa-rss"></i> RSS
+      </a>
+      <a href="{{ url_for('admin.media_list') }}" class="{{ 'active' if 'media' in (request.endpoint or '') }}">
+        <i class="fa fa-images"></i> Médias
+      </a>
+      {% if current_user.is_admin() %}
+      <a href="{{ url_for('admin.user_list') }}" class="{{ 'active' if 'user' in (request.endpoint or '') }}">
+        <i class="fa fa-users"></i> Utilisateurs
+      </a>
+      {% endif %}
+    </nav>
+
+    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid var(--gold-border);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-glow);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:1rem;color:var(--gold);">
+          {{ current_user.username[0] | upper }}
+        </div>
+        <div>
+          <p style="font-size:0.8rem;font-weight:600;">{{ current_user.username }}</p>
+          <p style="font-size:0.66rem;color:var(--text-sub);">{{ current_user.role | replace('_',' ') | title }}</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a href="{{ url_for('main.index') }}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;" target="_blank">
+          <i class="fa fa-external-link"></i> Site
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm" style="justify-content:center;">
+          <i class="fa fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  {# ── Main ── #}
+  <main class="admin-main">
+    {# Flash messages #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="margin-bottom:16px;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+              <i class="fa {% if category=='success' %}fa-circle-check{% elif category=='danger' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

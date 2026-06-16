@@ -1,0 +1,50 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ title }} — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>{{ title }}</h1>
+  <a href="{{ url_for('admin.blog_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Retour</a>
+</div>
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <div>
+      <div class="admin-box" style="margin-bottom:20px;">
+        <div class="admin-box__header"><span class="admin-box__title">Contenu</span></div>
+        <div class="admin-box__body">
+          <div class="form-group">{{ form.title_fr.label(class='form-label') }}{{ form.title_fr(class='form-control') }}</div>
+          <div class="form-group">{{ form.title_en.label(class='form-label') }}{{ form.title_en(class='form-control') }}</div>
+          <div class="form-group">{{ form.slug.label(class='form-label') }}{{ form.slug(class='form-control', placeholder='auto-généré si vide') }}</div>
+          <div class="form-group">{{ form.excerpt_fr.label(class='form-label') }}{{ form.excerpt_fr(class='form-control', rows=3) }}</div>
+          <div class="form-group">{{ form.content_fr.label(class='form-label') }}{{ form.content_fr(class='form-control', rows=20) }}</div>
+          <div class="form-group">{{ form.content_en.label(class='form-label') }}{{ form.content_en(class='form-control', rows=10) }}</div>
+        </div>
+      </div>
+      <div class="admin-box">
+        <div class="admin-box__header"><span class="admin-box__title">SEO</span></div>
+        <div class="admin-box__body">
+          <div class="form-group">{{ form.meta_title_fr.label(class='form-label') }}{{ form.meta_title_fr(class='form-control') }}</div>
+          <div class="form-group">{{ form.meta_desc_fr.label(class='form-label') }}{{ form.meta_desc_fr(class='form-control', rows=3) }}</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="admin-box">
+        <div class="admin-box__header"><span class="admin-box__title">Options</span></div>
+        <div class="admin-box__body">
+          <div class="form-group">{{ form.category_id.label(class='form-label') }}{{ form.category_id(class='form-control') }}</div>
+          {% for field in [form.is_featured, form.is_published] %}
+          <label style="display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer;font-size:0.86rem;">
+            {{ field(style='accent-color:var(--gold);width:16px;height:16px;') }}
+            <span>{{ field.label.text }}</span>
+          </label>
+          {% endfor %}
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-dark);">
+            {{ form.submit(class='btn btn-gold', style='width:100%;justify-content:center;') }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

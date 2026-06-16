@@ -1,0 +1,41 @@
+{# Usage: {% include 'partials/_destination_card.html' with dest=dest %} #}
+<article class="card dest-card" role="article">
+  <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" aria-label="{{ dest.get_name(current_lang) }}">
+    <div class="dest-card__img">
+      {% if dest.image_main %}
+        <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}"
+             alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+      {% else %}
+        <img src="{{ url_for('static', filename='images/placeholder-dest.jpg') }}"
+             alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+      {% endif %}
+      <div class="dest-card__overlay"></div>
+      <span class="dest-card__badge">{{ dest.destination_type | title }}</span>
+      <span class="dest-card__country">{{ dest.country.flag_emoji if dest.country and dest.country.flag_emoji else '' }} {{ dest.country.name_fr if dest.country else '' }}</span>
+    </div>
+  </a>
+  <div class="dest-card__body">
+    <h3 class="dest-card__name">
+      <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" style="color:inherit;">
+        {{ dest.get_name(current_lang) }}
+      </a>
+    </h3>
+    <p class="dest-card__desc">{{ dest.get_short_desc(current_lang) or '' }}</p>
+    <div class="dest-card__footer">
+      <div class="dest-card__rating">
+        <span class="stars">
+          {% set r = dest.avg_rating | int %}
+          {% for i in range(5) %}{% if i < r %}★{% else %}<span class="empty">☆</span>{% endif %}{% endfor %}
+        </span>
+        <span style="color:var(--text-sub);font-size:0.74rem;">({{ dest.review_count }})</span>
+      </div>
+      <div class="dest-card__price">
+        {% if dest.average_budget_eur %}
+          {% if current_lang == 'fr' %}À partir de{% else %}From{% endif %}
+          <strong>{{ dest.average_budget_eur }}€</strong>
+          <span style="font-size:0.68rem;color:var(--text-sub);">/{% if current_lang=='fr' %}jour{% else %}day{% endif %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>

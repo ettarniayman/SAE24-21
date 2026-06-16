@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+{% block title %}Médias — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Médiathèque</h1>
+  <label class="btn btn-gold btn-sm" style="cursor:pointer;">
+    <i class="fa fa-upload"></i> Uploader
+    <input type="file" id="uploadInput" multiple accept="image/*,video/*,.pdf" style="display:none;">
+  </label>
+</div>
+
+<div id="uploadProgress" style="display:none;margin-bottom:16px;padding:12px 20px;background:var(--bg-card);border:1px solid var(--gold-border);border-radius:var(--radius-sm);">
+  <p style="font-size:0.84rem;color:var(--gold);">Upload en cours…</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;" id="mediaGrid">
+  {% for media in medias %}
+  <div class="card" style="position:relative;overflow:hidden;aspect-ratio:1;">
+    {% if media.file_type == 'image' or not media.file_type %}
+      <img src="{{ media.file_path }}" alt="{{ media.title_fr or media.filename }}"
+           style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+    {% else %}
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-card2);">
+        <i class="fa fa-file-video" style="font-size:2.5rem;color:var(--gold-dim);"></i>
+      </div>
+    {% endif %}
+    <div style="position:absolute;inset:0;background:rgba(5,8,16,0.7);opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:0.2s;" class="media-hover">
+      <p style="font-size:0.68rem;color:var(--text-muted);text-align:center;padding:0 8px;word-break:break-all;">{{ media.filename }}</p>
+      <form action="{{ url_for('admin.media_delete', media_id=media.id) }}" method="POST" onsubmit="return confirm('Supprimer ce média ?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p style="color:var(--text-sub);">Aucun média.</p>
+  {% endfor %}
+</div>
+
+{% include 'partials/_pagination.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.card').forEach(card => {
+  const hover = card.querySelector('.media-hover');
+  if (hover) {
+    card.addEventListener('mouseenter', () => hover.style.opacity = '1');
+    card.addEventListener('mouseleave', () => hover.style.opacity = '0');
+  }
+});
+document.getElementById('uploadInput').addEventListener('change', async (e) => {
+  const files = e.target.files;
+  document.getElementById('uploadProgress').style.display = 'block';
+  for (const file of files) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('csrf_token', document.querySelector('[name=csrf_token]')?.value || '');
+    await fetch('{{ url_for("admin.media_upload") }}', { method: 'POST', body: fd });
+  }
+  location.reload();
+});
+</script>
+{% endblock %}

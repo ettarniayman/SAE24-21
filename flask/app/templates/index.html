@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% block title %}RT Voyage — Explore the World Without Limits{% endblock %}
+{% block meta_desc %}Découvrez plus de 80 destinations de rêve avec RT Voyage. Programmes sur mesure, hôtels de luxe, vols partenaires. Votre voyage commence ici.{% endblock %}
+
+{% block content %}
+
+{# ── HERO ── #}
+<section class="hero" aria-label="Bannière principale">
+  <div class="hero__bg" id="heroBg"></div>
+  <div class="hero__overlay"></div>
+  <div class="hero__particles" id="particlesContainer"></div>
+
+  <div class="hero__content">
+    <div class="hero__label">
+      {% if current_lang == 'fr' %}Bienvenue chez RT Voyage{% else %}Welcome to RT Voyage{% endif %}
+    </div>
+    <h1 class="hero__title">
+      {% if current_lang == 'fr' %}
+        Explorez le Monde<br>Sans <em>Frontières</em>
+      {% else %}
+        Explore the World<br>Without <em>Limits</em>
+      {% endif %}
+    </h1>
+    <p class="hero__subtitle">
+      {% if current_lang == 'fr' %}
+        80+ destinations, circuits sur mesure, hôtels de prestige — chaque voyage est une œuvre d'art.
+      {% else %}
+        80+ destinations, tailor-made tours, luxury hotels — every trip is a masterpiece.
+      {% endif %}
+    </p>
+
+    {# Search bar #}
+    <form class="hero-search" action="{{ url_for('destinations.list_destinations') }}" method="GET">
+      <i class="fa fa-search" style="color:var(--text-sub);flex-shrink:0;"></i>
+      <input type="text" name="q" placeholder="{% if current_lang=='fr' %}Marrakech, Paris, Bali…{% else %}Marrakech, Paris, Bali…{% endif %}" autocomplete="off">
+      <select name="type" aria-label="Type de voyage">
+        <option value="">{% if current_lang=='fr' %}Toutes catégories{% else %}All types{% endif %}</option>
+        <option value="city">{% if current_lang=='fr' %}Villes{% else %}Cities{% endif %}</option>
+        <option value="nature">{% if current_lang=='fr' %}Nature{% else %}Nature{% endif %}</option>
+        <option value="desert">{% if current_lang=='fr' %}Désert{% else %}Desert{% endif %}</option>
+        <option value="mountain">{% if current_lang=='fr' %}Montagne{% else %}Mountain{% endif %}</option>
+        <option value="beach">{% if current_lang=='fr' %}Plage{% else %}Beach{% endif %}</option>
+      </select>
+      <button type="submit" class="btn btn-gold">
+        <i class="fa fa-search"></i>
+        {% if current_lang == 'fr' %}Rechercher{% else %}Search{% endif %}
+      </button>
+    </form>
+
+    <div class="hero__cta">
+      <a href="{{ url_for('destinations.list_destinations') }}" class="btn btn-outline">
+        <i class="fa fa-map-location-dot"></i>
+        {% if current_lang == 'fr' %}Explorer les destinations{% else %}Explore destinations{% endif %}
+      </a>
+      <a href="{{ url_for('programs.list_programs') }}" class="btn btn-ghost">
+        <i class="fa fa-route"></i>
+        {% if current_lang == 'fr' %}Nos programmes{% else %}Our programs{% endif %}
+      </a>
+    </div>
+  </div>
+
+  <div class="hero__scroll" aria-hidden="true">
+    <i class="fa fa-chevron-down"></i>
+    <span>{% if current_lang == 'fr' %}Découvrir{% else %}Discover{% endif %}</span>
+  </div>
+</section>
+
+{# ── STATS ── #}
+<div class="stats-bar" role="region" aria-label="Chiffres clés">
+  <div class="stat-item">
+    <div class="stat-item__num" data-count="{{ stats.destinations }}">{{ stats.destinations }}</div>
+    <div class="stat-item__label">{% if current_lang=='fr' %}Destinations{% else %}Destinations{% endif %}</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-item__num" data-count="{{ stats.programs }}">{{ stats.programs }}</div>
+    <div class="stat-item__label">{% if current_lang=='fr' %}Programmes{% else %}Programs{% endif %}</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-item__num" data-count="{{ stats.travelers }}">{{ stats.travelers | int // 1000 }}K+</div>
+    <div class="stat-item__label">{% if current_lang=='fr' %}Voyageurs satisfaits{% else %}Happy travelers{% endif %}</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-item__num" data-count="{{ stats.countries }}">{{ stats.countries }}+</div>
+    <div class="stat-item__label">{% if current_lang=='fr' %}Pays couverts{% else %}Countries covered{% endif %}</div>
+  </div>
+</div>
+
+{# ── PROMOTIONS ── #}
+{% if active_promotions %}
+<section class="section section--dark section--sm" aria-label="Promotions">
+  <div class="section-head">
+    <span class="s-tag">{% if current_lang=='fr' %}Offres exclusives{% else %}Exclusive offers{% endif %}</span>
+    <h2 class="s-title">{% if current_lang=='fr' %}Nos <em>Promotions</em>{% else %}Our <em>Promotions</em>{% endif %}</h2>
+    <div class="gold-div"></div>
+  </div>
+  <div class="grid grid-2" style="max-width:1200px;margin:0 auto;">
+    {% for promo in active_promotions[:4] %}
+    <div class="promo-banner">
+      <div>
+        <div class="promo-banner__tag">
+          {% if promo.promo_type == 'flight' %}<i class="fa fa-plane"></i> Vol
+          {% elif promo.promo_type == 'hotel' %}<i class="fa fa-hotel"></i> Hôtel
+          {% else %}<i class="fa fa-tag"></i> Promotion{% endif %}
+          {% if promo.discount_percent %} — -{{ promo.discount_percent }}%{% endif %}
+        </div>
+        <div class="promo-banner__title">{{ promo.title_fr }}</div>
+        <div class="promo-banner__desc">{{ promo.description_fr | truncate(80) if promo.description_fr else '' }}</div>
+        {% if promo.promo_code %}<span class="promo-banner__code">{{ promo.promo_code }}</span>{% endif %}
+      </div>
+      <div class="promo-banner__price">
+        {% if promo.original_price %}<div class="old">{{ promo.original_price }}€</div>{% endif %}
+        {% if promo.promo_price %}<div class="new">{{ promo.promo_price }}€</div>{% endif %}
+        <a href="{{ url_for('destinations.detail', slug=promo.destination.slug) if promo.destination else '#' }}" class="btn btn-gold btn-sm" style="margin-top:8px;">
+          {% if current_lang=='fr' %}Réserver{% else %}Book{% endif %}
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ── DESTINATIONS VEDETTES ── #}
+<section class="section" aria-label="Destinations vedettes">
+  <div class="section-head">
+    <span class="s-tag">{% if current_lang=='fr' %}Nos coups de cœur{% else %}Our favorites{% endif %}</span>
+    <h2 class="s-title">{% if current_lang=='fr' %}Destinations <em>Vedettes</em>{% else %}<em>Featured</em> Destinations{% endif %}</h2>
+    <div class="gold-div"></div>
+    <p class="s-sub">{% if current_lang=='fr' %}Sélectionnées par nos experts pour des expériences exceptionnelles.{% else %}Handpicked by our experts for exceptional experiences.{% endif %}</p>
+  </div>
+
+  <div class="grid grid-auto" style="max-width:1400px;margin:0 auto;">
+    {% for dest in featured_destinations %}
+      {% with dest=dest %}{% include 'partials/_destination_card.html' %}{% endwith %}
+    {% endfor %}
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="{{ url_for('destinations.list_destinations') }}" class="btn btn-outline">
+      {% if current_lang=='fr' %}Voir toutes les destinations{% else %}View all destinations{% endif %}
+      <i class="fa fa-arrow-right"></i>
+    </a>
+  </div>
+</section>
+
+{# ── PROGRAMMES ── #}
+<section class="section section--dark" aria-label="Programmes de voyage">
+  <div class="section-head">
+    <span class="s-tag">{% if current_lang=='fr' %}Circuits & Séjours{% else %}Tours & Stays{% endif %}</span>
+    <h2 class="s-title">{% if current_lang=='fr' %}Nos <em>Programmes</em>{% else %}Our <em>Programs</em>{% endif %}</h2>
+    <div class="gold-div"></div>
+    <p class="s-sub">{% if current_lang=='fr' %}Des itinéraires soigneusement construits pour des moments parfaits.{% else %}Carefully crafted itineraries for perfect moments.{% endif %}</p>
+  </div>
+
+  <div class="grid grid-3" style="max-width:1200px;margin:0 auto;">
+    {% for prog in popular_programs %}
+      {% with prog=prog %}{% include 'partials/_programme_card.html' %}{% endwith %}
+    {% endfor %}
+  </div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <a href="{{ url_for('programs.list_programs') }}" class="btn btn-outline">
+      {% if current_lang=='fr' %}Tous nos programmes{% else %}All programs{% endif %}
+      <i class="fa fa-arrow-right"></i>
+    </a>
+  </div>
+</section>
+
+{# ── THÈMES ── #}
+<section class="section" aria-label="Voyages thématiques">
+  <div class="section-head">
+    <span class="s-tag">{% if current_lang=='fr' %}Voyages thématiques{% else %}Themed trips{% endif %}</span>
+    <h2 class="s-title">{% if current_lang=='fr' %}Votre style de <em>Voyage</em>{% else %}Your <em>Travel</em> Style{% endif %}</h2>
+    <div class="gold-div"></div>
+  </div>
+
+  <div class="grid grid-4" style="max-width:1200px;margin:0 auto;">
+    {% set themes = [
+      ('adventure', 'fa-mountain', 'Aventure', 'Adventure'),
+      ('nature', 'fa-leaf', 'Nature', 'Nature'),
+      ('culture', 'fa-landmark', 'Culture', 'Culture'),
+      ('luxury', 'fa-gem', 'Luxe', 'Luxury'),
+      ('gastronomy', 'fa-utensils', 'Gastronomie', 'Gastronomy'),
+      ('football', 'fa-futbol', 'Football', 'Football'),
+      ('family', 'fa-users', 'Famille', 'Family'),
+      ('sport', 'fa-person-biking', 'Sport', 'Sport'),
+    ] %}
+    {% for t in themes %}
+    <a href="{{ url_for('programs.list_programs', theme=t[0]) }}" class="card" style="padding:28px;text-align:center;display:block;">
+      <i class="fa {{ t[1] }}" style="font-size:2.2rem;color:var(--gold);margin-bottom:14px;display:block;"></i>
+      <h3 style="font-family:var(--font-serif);font-size:1.15rem;margin-bottom:6px;">{{ t[2] if current_lang=='fr' else t[3] }}</h3>
+      <span style="font-size:0.72rem;color:var(--text-sub);">
+        {% if current_lang=='fr' %}Voir les programmes →{% else %}View programs →{% endif %}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+{# ── TÉMOIGNAGES ── #}
+{% if featured_testimonials %}
+<section class="section section--dark" aria-label="Témoignages clients">
+  <div class="section-head">
+    <span class="s-tag">{% if current_lang=='fr' %}Ce que disent nos clients{% else %}What our clients say{% endif %}</span>
+    <h2 class="s-title">{% if current_lang=='fr' %}<em>Témoignages</em>{% else %}<em>Testimonials</em>{% endif %}</h2>
+    <div class="gold-div"></div>
+  </div>
+  <div class="grid grid-3" style="max-width:1100px;margin:0 auto;">
+    {% for t in featured_testimonials %}
+      {% with t=t %}{% include 'partials/_temoignage_card.html' %}{% endwith %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ── BLOG ── #}
+{% if recent_posts %}
+<section class="section" aria-label="Blog voyage">
+  <div class="section-head">
+    <span class="s-tag">{% if current_lang=='fr' %}Nos articles{% else %}Our articles{% endif %}</span>
+    <h2 class="s-title">{% if current_lang=='fr' %}Le <em>Blog</em> RTVoyage{% else %}RTVoyage <em>Blog</em>{% endif %}</h2>
+    <div class="gold-div"></div>
+  </div>
+  <div class="grid grid-3" style="max-width:1100px;margin:0 auto;">
+    {% for post in recent_posts %}
+    <article class="card" role="article">
+      {% if post.image_main %}
+        <div style="height:180px;overflow:hidden;">
+          <img src="{{ url_for('static', filename='images/uploads/' ~ post.image_main) }}"
+               alt="{{ post.title_fr }}" loading="lazy"
+               style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s;"
+               onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+        </div>
+      {% endif %}
+      <div style="padding:22px;">
+        {% if post.category %}
+          <span style="font-size:0.62rem;color:var(--gold);font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">{{ post.category.name_fr }}</span>
+        {% endif %}
+        <h3 style="font-family:var(--font-serif);font-size:1.15rem;margin:8px 0 10px;">
+          <a href="{{ url_for('blog.post_detail', slug=post.slug) }}" style="color:inherit;">{{ post.title_fr }}</a>
+        </h3>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;">
+          {{ post.excerpt_fr | truncate(100) if post.excerpt_fr else '' }}
+        </p>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.72rem;color:var(--text-sub);">
+            {% if post.published_at %}{{ post.published_at.strftime('%d %b %Y') }}{% endif %}
+          </span>
+          <a href="{{ url_for('blog.post_detail', slug=post.slug) }}" class="btn btn-ghost btn-sm">
+            {% if current_lang=='fr' %}Lire →{% else %}Read →{% endif %}
+          </a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <div style="text-align:center;margin-top:36px;">
+    <a href="{{ url_for('blog.list_posts') }}" class="btn btn-outline">
+      {% if current_lang=='fr' %}Tous les articles{% else %}All articles{% endif %}
+    </a>
+  </div>
+</section>
+{% endif %}
+
+{# ── AIRLINES PARTNERS ── #}
+{% if airlines %}
+<section class="section section--card section--sm" aria-label="Compagnies partenaires">
+  <div class="section-head" style="margin-bottom:32px;">
+    <span class="s-tag">{% if current_lang=='fr' %}Nos partenaires{% else %}Our partners{% endif %}</span>
+    <h2 class="s-title" style="font-size:1.6rem;">{% if current_lang=='fr' %}Compagnies <em>Aériennes</em>{% else %}<em>Airline</em> Partners{% endif %}</h2>
+  </div>
+  <div class="airlines-strip">
+    {% for airline in airlines %}
+      <a href="{{ url_for('airlines.detail', slug=airline.slug) }}" title="{{ airline.name }}">
+        {% if airline.logo %}
+          <img class="airline-logo" src="{{ url_for('static', filename='images/uploads/' ~ airline.logo) }}" alt="{{ airline.name }}" loading="lazy">
+        {% else %}
+          <span style="font-size:0.72rem;color:var(--text-muted);font-weight:700;letter-spacing:0.08em;border:1px solid var(--gold-border);padding:8px 16px;border-radius:4px;">{{ airline.name }}</span>
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ── CTA FINAL ── #}
+<section class="section section--dark" style="text-align:center;" aria-label="Appel à l'action">
+  <span class="s-tag">{% if current_lang=='fr' %}Votre voyage de rêve{% else %}Your dream trip{% endif %}</span>
+  <h2 class="s-title" style="max-width:700px;margin:0 auto 14px;">
+    {% if current_lang=='fr' %}Prêt à <em>Partir</em> ? Nous aussi.{% else %}Ready to <em>Leave</em>? So are we.{% endif %}
+  </h2>
+  <div class="gold-div"></div>
+  <p class="s-sub" style="margin:0 auto 36px;">
+    {% if current_lang=='fr' %}Nos conseillers créent votre itinéraire personnalisé, du premier vol à la chambre d'hôtel.{% else %}Our advisors craft your personalized itinerary, from the first flight to the hotel room.{% endif %}
+  </p>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+    <a href="{{ url_for('contact.index') }}" class="btn btn-gold btn-lg">
+      <i class="fa fa-envelope"></i>
+      {% if current_lang=='fr' %}Nous contacter{% else %}Contact us{% endif %}
+    </a>
+    <a href="{{ url_for('programs.list_programs') }}" class="btn btn-outline btn-lg">
+      <i class="fa fa-route"></i>
+      {% if current_lang=='fr' %}Voir les programmes{% else %}View programs{% endif %}
+    </a>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

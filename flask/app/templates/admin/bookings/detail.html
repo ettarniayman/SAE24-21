@@ -1,0 +1,48 @@
+{% extends "admin/base.html" %}
+{% block title %}Réservation {{ booking.reference }} — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Réservation <span>{{ booking.reference }}</span></h1>
+  <a href="{{ url_for('admin.booking_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Retour</a>
+</div>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;max-width:1000px;">
+  <div>
+    <div class="admin-box" style="margin-bottom:20px;">
+      <div class="admin-box__header"><span class="admin-box__title">Détails</span></div>
+      <div class="admin-box__body">
+        <table style="width:100%;font-size:0.88rem;border-collapse:collapse;">
+          {% for label, value in [('Référence', booking.reference), ('Client', booking.first_name ~ ' ' ~ booking.last_name), ('Email', booking.email), ('Téléphone', booking.phone or '—'), ('Nationalité', booking.nationality or '—'), ('Programme', booking.program.name_fr if booking.program else '—'), ('Date départ', booking.departure_date.strftime('%d/%m/%Y') if booking.departure_date else '—'), ('Date retour', booking.return_date.strftime('%d/%m/%Y') if booking.return_date else '—'), ('Participants', booking.participants), ('Prix total', (booking.total_price|string ~ ' ' ~ booking.currency) if booking.total_price else '—')] %}
+          <tr style="border-bottom:1px solid var(--border-dark);">
+            <td style="padding:10px 0;color:var(--text-muted);width:40%;">{{ label }}</td>
+            <td style="padding:10px 0;font-weight:500;">{{ value }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% if booking.special_requests %}
+        <div style="margin-top:16px;padding:14px;background:var(--bg-card2);border-radius:var(--radius-sm);">
+          <p style="font-size:0.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Demandes spéciales</p>
+          <p style="font-size:0.84rem;color:var(--text-muted);">{{ booking.special_requests }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="admin-box">
+      <div class="admin-box__header"><span class="admin-box__title">Statut</span></div>
+      <div class="admin-box__body">
+        <p style="margin-bottom:14px;">Statut actuel : <span class="badge {% if booking.status=='confirmed' %}badge-success{% elif booking.status=='cancelled' %}badge-danger{% else %}badge-muted{% endif %}">{{ booking.status }}</span></p>
+        <form action="{{ url_for('admin.booking_update_status', booking_id=booking.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="status" class="form-control" style="margin-bottom:12px;">
+            {% for s in ['pending','confirmed','cancelled','completed'] %}
+            <option value="{{ s }}" {{ 'selected' if booking.status == s }}>{{ s | title }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;">Mettre à jour</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

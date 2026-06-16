@@ -1,0 +1,259 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard — Administration RT Voyage{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+  <h1>Dash<span>board</span></h1>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <span style="font-size:0.76rem;color:var(--text-muted);">{{ now.strftime('%A %d %B %Y') if now is defined else '' }}</span>
+    <a href="{{ url_for('admin.dest_create') }}" class="btn btn-gold btn-sm">
+      <i class="fa fa-plus"></i> Nouvelle destination
+    </a>
+  </div>
+</div>
+
+{# Stats cards #}
+<div class="admin-stats">
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-map-location-dot"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.destinations }}</div>
+      <div class="admin-stat-card__label">Destinations</div>
+    </div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-route"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.programs }}</div>
+      <div class="admin-stat-card__label">Programmes</div>
+    </div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-hotel"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.hotels }}</div>
+      <div class="admin-stat-card__label">Hôtels</div>
+    </div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-calendar-check"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.bookings }}</div>
+      <div class="admin-stat-card__label">Réservations</div>
+    </div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-users"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.users }}</div>
+      <div class="admin-stat-card__label">Utilisateurs</div>
+    </div>
+  </div>
+  <div class="admin-stat-card" style="{{ 'border-color:rgba(192,57,43,0.4)' if stats.messages > 0 else '' }}">
+    <div class="admin-stat-card__icon" style="{{ 'background:rgba(192,57,43,0.1);color:var(--accent-red)' if stats.messages > 0 else '' }}"><i class="fa fa-envelope"></i></div>
+    <div>
+      <div class="admin-stat-card__num" style="{{ 'color:var(--accent-red)' if stats.messages > 0 else '' }}">{{ stats.messages }}</div>
+      <div class="admin-stat-card__label">Messages non lus</div>
+    </div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-star-half-stroke"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.testimonials_pending }}</div>
+      <div class="admin-stat-card__label">Avis en attente</div>
+    </div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-paper-plane"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.newsletter }}</div>
+      <div class="admin-stat-card__label">Abonnés newsletter</div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+  {# Chart réservations #}
+  <div class="admin-box">
+    <div class="admin-box__header">
+      <span class="admin-box__title"><i class="fa fa-chart-line" style="color:var(--gold);margin-right:8px;"></i> Réservations (12 derniers mois)</span>
+    </div>
+    <div class="admin-box__body">
+      <div class="chart-wrap" style="height:250px;">
+        <canvas id="bookingsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  {# Chart destinations #}
+  <div class="admin-box">
+    <div class="admin-box__header">
+      <span class="admin-box__title"><i class="fa fa-chart-pie" style="color:var(--gold);margin-right:8px;"></i> Destinations populaires</span>
+    </div>
+    <div class="admin-box__body">
+      <div class="chart-wrap" style="height:250px;">
+        <canvas id="destChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;">
+  {# Dernières réservations #}
+  <div class="admin-box">
+    <div class="admin-box__header">
+      <span class="admin-box__title"><i class="fa fa-calendar-check" style="color:var(--gold);margin-right:8px;"></i> Dernières réservations</span>
+      <a href="{{ url_for('admin.booking_list') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+    </div>
+    <div class="admin-box__body" style="padding:0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Client</th>
+            <th>Programme</th>
+            <th>Statut</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in recent_bookings %}
+          <tr>
+            <td><a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}" style="color:var(--gold);font-family:monospace;font-size:0.8rem;">{{ b.reference }}</a></td>
+            <td style="font-size:0.84rem;">{{ b.first_name }} {{ b.last_name }}</td>
+            <td style="font-size:0.82rem;color:var(--text-muted);">{{ b.program.name_fr[:30] ~ '…' if b.program and b.program.name_fr|length > 30 else (b.program.name_fr if b.program else '—') }}</td>
+            <td>
+              <span class="badge {% if b.status == 'confirmed' %}badge-success{% elif b.status == 'cancelled' %}badge-danger{% elif b.status == 'completed' %}badge-gold{% else %}badge-muted{% endif %}">{{ b.status }}</span>
+            </td>
+            <td style="font-size:0.78rem;color:var(--text-sub);">{{ b.created_at.strftime('%d/%m/%Y') }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="text-align:center;color:var(--text-sub);padding:28px;">Aucune réservation</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# Messages récents + Témoignages en attente #}
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="admin-box">
+      <div class="admin-box__header">
+        <span class="admin-box__title"><i class="fa fa-envelope" style="color:var(--gold);margin-right:8px;"></i> Messages récents</span>
+        <a href="{{ url_for('admin.message_list') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+      </div>
+      <div class="admin-box__body" style="padding:0;">
+        {% for msg in recent_messages %}
+        <div style="padding:14px 22px;border-bottom:1px solid var(--border-dark);display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-glow);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:var(--gold);flex-shrink:0;">
+            {{ msg.first_name[0] | upper }}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <p style="font-size:0.84rem;font-weight:600;{% if not msg.is_read %}color:var(--text-white){% else %}color:var(--text-muted){% endif %}">{{ msg.first_name }} {{ msg.last_name }}</p>
+            <p style="font-size:0.76rem;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ msg.subject }}</p>
+          </div>
+          <a href="{{ url_for('admin.message_detail', msg_id=msg.id) }}" class="btn btn-ghost btn-sm" style="flex-shrink:0;">→</a>
+        </div>
+        {% else %}
+        <p style="padding:20px;text-align:center;color:var(--text-sub);font-size:0.84rem;">Aucun message</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="admin-box">
+      <div class="admin-box__header">
+        <span class="admin-box__title"><i class="fa fa-star" style="color:var(--gold);margin-right:8px;"></i> Avis en attente</span>
+        <a href="{{ url_for('admin.testimonial_list') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+      </div>
+      <div class="admin-box__body" style="padding:0;">
+        {% for t in pending_testimonials %}
+        <div style="padding:14px 22px;border-bottom:1px solid var(--border-dark);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <p style="font-size:0.84rem;font-weight:600;">{{ t.client_name }}</p>
+            <span style="color:var(--gold);font-size:0.84rem;">{{ '★' * t.rating }}</span>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-muted);">{{ t.comment | truncate(80) }}</p>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <form action="{{ url_for('admin.testimonial_approve', t_id=t.id) }}" method="POST" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm" style="background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.3);color:#2ecc71;padding:4px 12px;" type="submit">
+                <i class="fa fa-check"></i> Approuver
+              </button>
+            </form>
+            <form action="{{ url_for('admin.testimonial_delete', t_id=t.id) }}" method="POST" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm" style="background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);color:#e74c3c;padding:4px 12px;" type="submit">
+                <i class="fa fa-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <p style="padding:20px;text-align:center;color:var(--text-sub);font-size:0.84rem;">Aucun avis en attente</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js global defaults
+Chart.defaults.color = 'rgba(255,255,255,0.5)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.08)';
+Chart.defaults.font.family = 'Montserrat';
+Chart.defaults.font.size = 11;
+
+// Bookings chart (monthly simulation)
+const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const bookingsData = [12,18,25,30,42,38,55,61,47,35,28,20];
+new Chart(document.getElementById('bookingsChart'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Réservations',
+      data: bookingsData,
+      borderColor: '#c9a96e',
+      backgroundColor: 'rgba(201,169,110,0.08)',
+      borderWidth: 2,
+      pointBackgroundColor: '#c9a96e',
+      pointRadius: 4,
+      fill: true,
+      tension: 0.4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.06)' } },
+      y: { grid: { color: 'rgba(255,255,255,0.06)' }, beginAtZero: true }
+    }
+  }
+});
+
+// Destinations chart
+new Chart(document.getElementById('destChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Maroc', 'Europe', 'Asie', 'Amériques', 'Moyen-Orient'],
+    datasets: [{
+      data: [35, 25, 18, 12, 10],
+      backgroundColor: ['#c9a96e','#e8c99a','#8b6a3e','#5c4a2a','#3d3020'],
+      borderColor: '#0f1325',
+      borderWidth: 3,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+    }
+  }
+});
+</script>
+{% endblock %}

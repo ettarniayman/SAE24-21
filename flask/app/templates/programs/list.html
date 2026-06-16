@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{% if current_lang=='fr' %}Programmes de Voyage — RT Voyage{% else %}Travel Programs — RT Voyage{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="breadcrumb">
+    <a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a>
+    <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
+    <span class="breadcrumb__current">{% if current_lang=='fr' %}Programmes{% else %}Programs{% endif %}</span>
+  </div>
+  <p class="page-hero__tag">{% if current_lang=='fr' %}Circuits & Séjours{% else %}Tours & Stays{% endif %}</p>
+  <h1 class="page-hero__title">{% if current_lang=='fr' %}Nos <span style="color:var(--gold)">Programmes</span>{% else %}Our <span style="color:var(--gold)">Programs</span>{% endif %}</h1>
+  <p class="page-hero__sub">{{ pagination.total }} {% if current_lang=='fr' %}programme(s) disponible(s){% else %}program(s) available{% endif %}</p>
+</div>
+
+<section class="section section--sm">
+  <form class="filter-bar" method="GET">
+    <div class="filter-toggle" role="group" aria-label="Thème">
+      <button type="submit" name="theme" value="" class="{{ 'active' if not current_theme }}">
+        {% if current_lang=='fr' %}Tous{% else %}All{% endif %}
+      </button>
+      {% for t in themes %}
+        <button type="submit" name="theme" value="{{ t }}" class="{{ 'active' if current_theme == t }}">{{ t | title }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="filter-toggle" role="group" aria-label="Durée">
+      <button type="submit" name="duration" value="" class="{{ 'active' if not current_duration }}">{% if current_lang=='fr' %}Toutes durées{% else %}All durations{% endif %}</button>
+      <button type="submit" name="duration" value="short" class="{{ 'active' if current_duration=='short' }}">≤ 5j</button>
+      <button type="submit" name="duration" value="medium" class="{{ 'active' if current_duration=='medium' }}">6–10j</button>
+      <button type="submit" name="duration" value="long" class="{{ 'active' if current_duration=='long' }}">10j+</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <label>{% if current_lang=='fr' %}Tri{% else %}Sort{% endif %}</label>
+      <select name="sort" class="filter-select" onchange="this.form.submit()">
+        <option value="featured" {% if current_sort=='featured' %}selected{% endif %}>{% if current_lang=='fr' %}Recommandés{% else %}Featured{% endif %}</option>
+        <option value="price_asc" {% if current_sort=='price_asc' %}selected{% endif %}>{% if current_lang=='fr' %}Prix croissant{% else %}Price asc{% endif %}</option>
+        <option value="price_desc" {% if current_sort=='price_desc' %}selected{% endif %}>{% if current_lang=='fr' %}Prix décroissant{% else %}Price desc{% endif %}</option>
+        <option value="duration" {% if current_sort=='duration' %}selected{% endif %}>{% if current_lang=='fr' %}Durée{% else %}Duration{% endif %}</option>
+      </select>
+    </div>
+  </form>
+
+  {% if programs %}
+    <div class="grid grid-3">
+      {% for prog in programs %}
+        {% with prog=prog %}{% include 'partials/_programme_card.html' %}{% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align:center;padding:80px 0;">
+      <i class="fa fa-route" style="font-size:3rem;color:var(--gold-dim);margin-bottom:20px;display:block;"></i>
+      <p style="color:var(--text-muted);">{% if current_lang=='fr' %}Aucun programme trouvé.{% else %}No program found.{% endif %}</p>
+    </div>
+  {% endif %}
+
+  {% include 'partials/_pagination.html' %}
+</section>
+{% endblock %}

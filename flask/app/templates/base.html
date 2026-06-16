@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang }}" class="theme-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  {# ── SEO ── #}
+  <title>{% block title %}RT Voyage — Explore the World Without Limits{% endblock %}</title>
+  <meta name="description" content="{% block meta_desc %}Plateforme de voyage premium : 80+ destinations, programmes sur mesure, hôtels de luxe, vols partenaires. Votre voyage de rêve commence ici.{% endblock %}">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="{{ request.url }}">
+
+  {# ── Open Graph ── #}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="RT Voyage">
+  <meta property="og:title" content="{% block og_title %}RT Voyage — Explore the World Without Limits{% endblock %}">
+  <meta property="og:description" content="{% block og_desc %}Découvrez plus de 80 destinations de rêve avec RT Voyage.{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/og-default.jpg') }}{% endblock %}">
+  <meta property="og:url" content="{{ request.url }}">
+
+  {# ── Twitter Cards ── #}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@RTVoyage">
+  <meta name="twitter:title" content="{% block tw_title %}RT Voyage{% endblock %}">
+  <meta name="twitter:description" content="{% block tw_desc %}Votre agence de voyage premium.{% endblock %}">
+
+  {# ── Fonts ── #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  {# ── Icons ── #}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  {# ── CSS ── #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+
+  {# ── Schema.org ── #}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TravelAgency",
+    "name": "RT Voyage",
+    "description": "Agence de voyage premium — 80+ destinations",
+    "url": "{{ request.host_url }}",
+    "logo": "{{ request.host_url }}static/images/logo-rtvoyage.png"
+  }
+  </script>
+  {% block schema %}{% endblock %}
+</head>
+<body>
+
+{# ── RSS Ticker ── #}
+{% if latest_news %}
+<div class="rss-ticker" role="marquee" aria-label="Actualités RT Voyage">
+  <div class="rss-ticker__inner">
+    <span class="rss-ticker__label">
+      <i class="fa fa-rss"></i>
+      {% if current_lang == 'fr' %}Actualités{% else %}News{% endif %}
+    </span>
+    <div class="rss-ticker__track" id="tickerTrack">
+      {% for item in latest_news %}
+        <span class="rss-ticker__item">
+          {% if item.link %}<a href="{{ item.link }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}
+          <span class="rss-ticker__sep">✦</span>
+        </span>
+      {% endfor %}
+      {# duplicate for seamless loop #}
+      {% for item in latest_news %}
+        <span class="rss-ticker__item">
+          {% if item.link %}<a href="{{ item.link }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}
+          <span class="rss-ticker__sep">✦</span>
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Navbar ── #}
+<nav class="navbar" id="mainNav" role="navigation" aria-label="Navigation principale">
+  <a href="{{ url_for('main.index') }}" class="navbar__logo">
+    RT<span>Voyage</span>
+    <small>Explore the World Without Limits</small>
+  </a>
+
+  <ul class="navbar__nav" id="navMenu">
+    <li><a href="{{ url_for('destinations.list_destinations') }}" {% if request.endpoint and 'destinations' in request.endpoint %}class="active"{% endif %}>
+      {% if current_lang == 'fr' %}Destinations{% else %}Destinations{% endif %}
+    </a></li>
+    <li><a href="{{ url_for('programs.list_programs') }}" {% if request.endpoint and 'programs' in request.endpoint %}class="active"{% endif %}>
+      {% if current_lang == 'fr' %}Programmes{% else %}Programs{% endif %}
+    </a></li>
+    <li><a href="{{ url_for('hotels.list_hotels') }}" {% if request.endpoint and 'hotels' in request.endpoint %}class="active"{% endif %}>
+      {% if current_lang == 'fr' %}Hôtels{% else %}Hotels{% endif %}
+    </a></li>
+    <li><a href="{{ url_for('airlines.list_airlines') }}" {% if request.endpoint and 'airlines' in request.endpoint %}class="active"{% endif %}>
+      {% if current_lang == 'fr' %}Vols{% else %}Flights{% endif %}
+    </a></li>
+    <li><a href="{{ url_for('blog.list_posts') }}" {% if request.endpoint and 'blog' in request.endpoint %}class="active"{% endif %}>Blog</a></li>
+    <li><a href="{{ url_for('shop.index') }}" {% if request.endpoint and 'shop' in request.endpoint %}class="active"{% endif %}>
+      {% if current_lang == 'fr' %}Boutique{% else %}Shop{% endif %}
+    </a></li>
+    <li><a href="{{ url_for('contact.index') }}" {% if request.endpoint and 'contact' in request.endpoint %}class="active"{% endif %}>
+      {% if current_lang == 'fr' %}Contact{% else %}Contact{% endif %}
+    </a></li>
+  </ul>
+
+  <div class="navbar__actions">
+    {# Search #}
+    <button class="navbar__search-btn" id="searchBtn" aria-label="Rechercher" title="Rechercher">
+      <i class="fa fa-search"></i>
+    </button>
+
+    {# Language switch #}
+    <div style="display:flex;gap:4px;align-items:center;">
+      <a href="{{ url_for('main.set_lang', lang='fr') }}" style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;padding:5px 8px;border-radius:4px;color:{% if current_lang=='fr' %}var(--gold){% else %}var(--text-sub){% endif %};border:1px solid {% if current_lang=='fr' %}var(--gold-border){% else %}transparent{% endif %};">FR</a>
+      <a href="{{ url_for('main.set_lang', lang='en') }}" style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;padding:5px 8px;border-radius:4px;color:{% if current_lang=='en' %}var(--gold){% else %}var(--text-sub){% endif %};border:1px solid {% if current_lang=='en' %}var(--gold-border){% else %}transparent{% endif %};">EN</a>
+    </div>
+
+    {# Auth #}
+    {% if current_user.is_authenticated %}
+      {% if current_user.is_agent() %}
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline btn-sm"><i class="fa fa-gauge"></i> Admin</a>
+      {% endif %}
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm"><i class="fa fa-right-from-bracket"></i></a>
+    {% else %}
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">
+        <i class="fa fa-user"></i> {% if current_lang == 'fr' %}Connexion{% else %}Login{% endif %}
+      </a>
+    {% endif %}
+
+    <button class="navbar__hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+{# ── Search overlay ── #}
+<div class="search-overlay" id="searchOverlay" role="dialog" aria-modal="true" aria-label="Recherche">
+  <button class="search-overlay__close" id="searchClose" aria-label="Fermer"><i class="fa fa-times"></i></button>
+  <div class="search-overlay__inner">
+    <input type="text" class="search-overlay__input" id="searchInput"
+      placeholder="{% if current_lang=='fr' %}Rechercher une destination, un programme…{% else %}Search a destination, program…{% endif %}"
+      autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+
+{# ── Flash messages ── #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+          <i class="fa {% if category=='success' %}fa-circle-check{% elif category=='danger' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{# ── Main content ── #}
+<main id="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+{# ── Footer ── #}
+<footer class="footer" role="contentinfo">
+  <div class="footer__grid">
+    {# Col 1 — brand #}
+    <div>
+      <div class="footer__logo">RT<span>Voyage</span></div>
+      <p class="footer__tagline">
+        {% if current_lang == 'fr' %}
+          Votre agence de voyage premium. Plus de 80 destinations soigneusement sélectionnées pour des expériences inoubliables.
+        {% else %}
+          Your premium travel agency. Over 80 carefully selected destinations for unforgettable experiences.
+        {% endif %}
+      </p>
+      <div class="footer__socials">
+        <a href="#" class="footer__social" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="footer__social" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="footer__social" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+        <a href="#" class="footer__social" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        <a href="{{ url_for('rss.rss_feed') }}" class="footer__social" aria-label="RSS"><i class="fa fa-rss"></i></a>
+      </div>
+    </div>
+
+    {# Col 2 — destinations #}
+    <div>
+      <p class="footer__col-title">{% if current_lang=='fr' %}Destinations{% else %}Destinations{% endif %}</p>
+      <div class="footer__links">
+        <a href="{{ url_for('destinations.detail', slug='marrakech') }}">Marrakech</a>
+        <a href="{{ url_for('destinations.detail', slug='chefchaouen') }}">Chefchaouen</a>
+        <a href="{{ url_for('destinations.detail', slug='merzouga') }}">Merzouga</a>
+        <a href="{{ url_for('destinations.detail', slug='agadir') }}">Agadir</a>
+        <a href="{{ url_for('destinations.detail', slug='paris') }}">Paris</a>
+        <a href="{{ url_for('destinations.detail', slug='dubai') }}">Dubaï</a>
+        <a href="{{ url_for('destinations.list_destinations') }}">{% if current_lang=='fr' %}Voir tout →{% else %}View all →{% endif %}</a>
+      </div>
+    </div>
+
+    {# Col 3 — liens #}
+    <div>
+      <p class="footer__col-title">{% if current_lang=='fr' %}Navigation{% else %}Navigation{% endif %}</p>
+      <div class="footer__links">
+        <a href="{{ url_for('programs.list_programs') }}">{% if current_lang=='fr' %}Programmes{% else %}Programs{% endif %}</a>
+        <a href="{{ url_for('hotels.list_hotels') }}">{% if current_lang=='fr' %}Hôtels{% else %}Hotels{% endif %}</a>
+        <a href="{{ url_for('airlines.list_airlines') }}">{% if current_lang=='fr' %}Compagnies aériennes{% else %}Airlines{% endif %}</a>
+        <a href="{{ url_for('blog.list_posts') }}">Blog</a>
+        <a href="{{ url_for('shop.index') }}">{% if current_lang=='fr' %}Boutique{% else %}Shop{% endif %}</a>
+        <a href="{{ url_for('main.faq') }}">FAQ</a>
+        <a href="{{ url_for('contact.index') }}">Contact</a>
+      </div>
+    </div>
+
+    {# Col 4 — newsletter #}
+    <div>
+      <p class="footer__col-title">Newsletter</p>
+      <p class="footer__newsletter-text">
+        {% if current_lang=='fr' %}Recevez nos offres exclusives et nouveautés en avant-première.{% else %}Receive our exclusive offers and news first.{% endif %}
+      </p>
+      <form class="footer__newsletter-form" action="{{ url_for('main.newsletter_subscribe') }}" method="POST">
+        {{ newsletter_form.hidden_tag() if newsletter_form is defined else '' }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="email" name="email" placeholder="votre@email.com" required aria-label="Email newsletter">
+        <button type="submit" class="btn btn-gold btn-sm"><i class="fa fa-paper-plane"></i></button>
+      </form>
+      <div style="margin-top:20px;">
+        <p class="footer__col-title" style="margin-bottom:12px;">{% if current_lang=='fr' %}Certifications{% else %}Certifications{% endif %}</p>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <span style="font-size:0.7rem;color:var(--text-sub);border:1px solid var(--border-dark);padding:4px 10px;border-radius:4px;">IATA Member</span>
+          <span style="font-size:0.7rem;color:var(--text-sub);border:1px solid var(--border-dark);padding:4px 10px;border-radius:4px;">Certified Agency</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer__bottom">
+    <p class="footer__copy">© {{ 2026 }} RT Voyage — {% if current_lang=='fr' %}Tous droits réservés{% else %}All rights reserved{% endif %}</p>
+    <nav class="footer__legal" aria-label="Liens légaux">
+      <a href="{{ url_for('main.legal') }}">{% if current_lang=='fr' %}Mentions légales{% else %}Legal notice{% endif %}</a>
+      <a href="{{ url_for('main.privacy') }}">{% if current_lang=='fr' %}Confidentialité{% else %}Privacy{% endif %}</a>
+      <a href="{{ url_for('main.terms') }}">{% if current_lang=='fr' %}CGV{% else %}T&C{% endif %}</a>
+    </nav>
+  </div>
+</footer>
+
+{# ── Back to top ── #}
+<button class="back-to-top" id="backToTop" aria-label="Retour en haut">
+  <i class="fa fa-chevron-up"></i>
+</button>
+
+{# ── Scripts ── #}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

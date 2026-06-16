@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+{% block title %}Newsletter — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Newsletter <span>— {{ total }} abonnés actifs</span></h1>
+</div>
+<div class="admin-box">
+  <div class="admin-box__header">
+    <span class="admin-box__title">Abonnés</span>
+  </div>
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Email</th><th>Prénom</th><th>Langue</th><th>Confirmé</th><th>Inscrit le</th></tr></thead>
+      <tbody>
+        {% for sub in subs %}
+        <tr>
+          <td style="font-size:0.86rem;">{{ sub.email }}</td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ sub.first_name or '—' }}</td>
+          <td><span class="badge badge-muted">{{ sub.lang | upper }}</span></td>
+          <td><span class="badge {{ 'badge-success' if sub.is_confirmed else 'badge-muted' }}">{{ 'Oui' if sub.is_confirmed else 'Non' }}</span></td>
+          <td style="font-size:0.76rem;color:var(--text-sub);">{{ sub.subscribed_at.strftime('%d/%m/%Y') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-sub);">Aucun abonné</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

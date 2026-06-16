@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Utilisateurs — Admin{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Utilisateurs <span>({{ pagination.total }})</span></h1></div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Utilisateur</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Inscription</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td style="font-weight:600;font-size:0.88rem;">{{ user.username }}</td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ user.email }}</td>
+          <td><span class="badge {% if user.role=='super_admin' %}badge-gold{% elif user.role=='admin' %}badge-success{% elif user.role=='agent' %}badge-muted{% else %}badge-muted{% endif %}">{{ user.role }}</span></td>
+          <td><span class="badge {{ 'badge-success' if user.is_active else 'badge-danger' }}">{{ 'Actif' if user.is_active else 'Inactif' }}</span></td>
+          <td style="font-size:0.78rem;color:var(--text-sub);">{{ user.created_at.strftime('%d/%m/%Y') }}</td>
+          <td><div class="actions">
+            <a href="{{ url_for('admin.user_edit', user_id=user.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-pen"></i></a>
+          </div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

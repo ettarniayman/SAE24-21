@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% block title %}Programmes — Admin RT Voyage{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Programmes <span>({{ pagination.total }})</span></h1>
+  <a href="{{ url_for('admin.program_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouveau programme</a>
+</div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead>
+        <tr><th>Nom</th><th>Durée</th><th>Thème</th><th>Prix</th><th>Statut</th><th>Vues</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for prog in programs %}
+        <tr>
+          <td style="font-weight:600;font-size:0.88rem;">{{ prog.name_fr }}</td>
+          <td style="font-size:0.84rem;">{{ prog.duration_days }}j</td>
+          <td>{% if prog.theme %}<span class="badge badge-gold">{{ prog.theme }}</span>{% else %}—{% endif %}</td>
+          <td style="font-size:0.84rem;">{% if prog.price_per_person %}{{ prog.price_per_person }}€{% else %}Sur devis{% endif %}</td>
+          <td><span class="badge {{ 'badge-success' if prog.is_active else 'badge-danger' }}">{{ 'Actif' if prog.is_active else 'Inactif' }}</span></td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ prog.view_count or 0 }}</td>
+          <td><div class="actions">
+            <a href="{{ url_for('programs.detail', slug=prog.slug) }}" class="btn btn-ghost btn-sm" target="_blank"><i class="fa fa-eye"></i></a>
+            <a href="{{ url_for('admin.program_edit', prog_id=prog.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-pen"></i></a>
+            {% if current_user.is_admin() %}
+            <form action="{{ url_for('admin.program_delete', prog_id=prog.id) }}" method="POST" onsubmit="return confirm('Supprimer ?');" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+            </form>
+            {% endif %}
+          </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-sub);">Aucun programme</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

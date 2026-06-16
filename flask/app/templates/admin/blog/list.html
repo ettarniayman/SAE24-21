@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+{% block title %}Blog — Admin RT Voyage{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Blog <span>({{ pagination.total }})</span></h1>
+  <a href="{{ url_for('admin.blog_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouvel article</a>
+</div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead>
+        <tr><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Statut</th><th>Vues</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for post in posts %}
+        <tr>
+          <td style="font-weight:600;font-size:0.88rem;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ post.title_fr }}</td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">{{ post.category.name_fr if post.category else '—' }}</td>
+          <td style="font-size:0.82rem;">{{ post.author.username if post.author else '—' }}</td>
+          <td>
+            <span class="badge {{ 'badge-success' if post.is_published else 'badge-muted' }}">{{ 'Publié' if post.is_published else 'Brouillon' }}</span>
+            {% if post.is_featured %}<span class="badge badge-gold" style="margin-left:4px;">Vedette</span>{% endif %}
+          </td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ post.view_count or 0 }}</td>
+          <td style="font-size:0.78rem;color:var(--text-sub);">{{ post.published_at.strftime('%d/%m/%y') if post.published_at else '—' }}</td>
+          <td><div class="actions">
+            {% if post.is_published %}
+              <a href="{{ url_for('blog.post_detail', slug=post.slug) }}" class="btn btn-ghost btn-sm" target="_blank"><i class="fa fa-eye"></i></a>
+            {% endif %}
+            <a href="{{ url_for('admin.blog_edit', post_id=post.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-pen"></i></a>
+            {% if current_user.is_admin() %}
+            <form action="{{ url_for('admin.blog_delete', post_id=post.id) }}" method="POST" onsubmit="return confirm('Supprimer ?');" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+            </form>
+            {% endif %}
+          </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-sub);">Aucun article</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

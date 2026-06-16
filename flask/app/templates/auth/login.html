@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Connexion — RT Voyage{% endblock %}
+
+{% block content %}
+<section style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 20px 60px;">
+  <div style="width:100%;max-width:440px;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <p class="s-tag">Espace Client</p>
+      <h1 style="font-family:var(--font-serif);font-size:clamp(2rem,4vw,2.8rem);color:var(--text-light);font-weight:600;">
+        {% if current_lang == 'en' %}Sign In{% else %}Connexion{% endif %}
+      </h1>
+      <div class="gold-div" style="margin:16px auto;"></div>
+    </div>
+
+    <div class="card" style="padding:36px;backdrop-filter:blur(12px);">
+      <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+          <label class="form-label">{{ form.identifier.label.text }}</label>
+          {{ form.identifier(class='form-control', placeholder='Email ou nom d\'utilisateur') }}
+          {% for e in form.identifier.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="form-group" style="position:relative;">
+          <label class="form-label">{{ form.password.label.text }}</label>
+          {{ form.password(class='form-control', id='pwd', placeholder='••••••••') }}
+          <button type="button" onclick="togglePwd()" style="position:absolute;right:14px;top:38px;background:none;border:none;color:var(--text-sub);cursor:pointer;font-size:0.88rem;">
+            <i class="fa fa-eye" id="pwdIcon"></i>
+          </button>
+          {% for e in form.password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:24px;cursor:pointer;font-size:0.84rem;color:var(--text-muted);">
+          {{ form.remember_me(style='accent-color:var(--gold);') }}
+          {{ form.remember_me.label.text }}
+        </label>
+        <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;font-size:1rem;">
+          {% if current_lang == 'en' %}Sign In{% else %}Se connecter{% endif %}
+        </button>
+      </form>
+      <p style="text-align:center;margin-top:24px;font-size:0.84rem;color:var(--text-sub);">
+        {% if current_lang == 'en' %}No account?{% else %}Pas encore inscrit ?{% endif %}
+        <a href="{{ url_for('auth.register') }}" style="color:var(--gold);">
+          {% if current_lang == 'en' %}Create one{% else %}Créer un compte{% endif %}
+        </a>
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePwd() {
+  const inp = document.getElementById('pwd');
+  const ico = document.getElementById('pwdIcon');
+  if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fa fa-eye-slash'; }
+  else { inp.type = 'password'; ico.className = 'fa fa-eye'; }
+}
+</script>
+{% endblock %}

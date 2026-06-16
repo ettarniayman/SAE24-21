@@ -1,0 +1,204 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ title }} — Admin RT Voyage{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>{{ title }}</h1>
+  <a href="{{ url_for('admin.dest_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Retour</a>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:flex-start;">
+    <div>
+      {# Informations de base #}
+      <div class="admin-box" style="margin-bottom:20px;">
+        <div class="admin-box__header"><span class="admin-box__title">Informations générales</span></div>
+        <div class="admin-box__body">
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.name_fr.label(class='form-label') }}
+              {{ form.name_fr(class='form-control') }}
+            </div>
+            <div class="form-group">
+              {{ form.name_en.label(class='form-label') }}
+              {{ form.name_en(class='form-control') }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.slug.label(class='form-label') }}
+              {{ form.slug(class='form-control', placeholder='auto-généré si vide') }}
+            </div>
+            <div class="form-group">
+              {{ form.country_id.label(class='form-label') }}
+              {{ form.country_id(class='form-control') }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.region.label(class='form-label') }}
+              {{ form.region(class='form-control') }}
+            </div>
+            <div class="form-group">
+              {{ form.destination_type.label(class='form-label') }}
+              {{ form.destination_type(class='form-control') }}
+            </div>
+          </div>
+          <div class="form-group">
+            {{ form.short_desc_fr.label(class='form-label') }}
+            {{ form.short_desc_fr(class='form-control', rows=3) }}
+          </div>
+          <div class="form-group">
+            {{ form.long_desc_fr.label(class='form-label') }}
+            {{ form.long_desc_fr(class='form-control', rows=6) }}
+          </div>
+          <div class="form-group">
+            {{ form.history_fr.label(class='form-label') }}
+            {{ form.history_fr(class='form-control', rows=4) }}
+          </div>
+          <div class="form-group">
+            {{ form.culture_fr.label(class='form-label') }}
+            {{ form.culture_fr(class='form-control', rows=4) }}
+          </div>
+          <div class="form-group">
+            {{ form.gastronomy_fr.label(class='form-label') }}
+            {{ form.gastronomy_fr(class='form-control', rows=4) }}
+          </div>
+        </div>
+      </div>
+
+      {# Informations pratiques #}
+      <div class="admin-box" style="margin-bottom:20px;">
+        <div class="admin-box__header"><span class="admin-box__title">Informations pratiques</span></div>
+        <div class="admin-box__body">
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.average_budget_eur.label(class='form-label') }}
+              {{ form.average_budget_eur(class='form-control', placeholder='€ / jour') }}
+            </div>
+            <div class="form-group">
+              {{ form.best_period_fr.label(class='form-label') }}
+              {{ form.best_period_fr(class='form-control', placeholder='Ex: Avril à Octobre') }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.difficulty_level.label(class='form-label') }}
+              {{ form.difficulty_level(class='form-control') }}
+            </div>
+            <div class="form-group">
+              {{ form.safety_level.label(class='form-label') }}
+              {{ form.safety_level(class='form-control') }}
+            </div>
+          </div>
+          <div class="form-group">
+            {{ form.climate_fr.label(class='form-label') }}
+            {{ form.climate_fr(class='form-control', rows=3) }}
+          </div>
+        </div>
+      </div>
+
+      {# Géolocalisation #}
+      <div class="admin-box" style="margin-bottom:20px;">
+        <div class="admin-box__header"><span class="admin-box__title">Géolocalisation</span></div>
+        <div class="admin-box__body">
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.latitude.label(class='form-label') }}
+              {{ form.latitude(class='form-control', placeholder='Ex: 31.6295') }}
+            </div>
+            <div class="form-group">
+              {{ form.longitude.label(class='form-label') }}
+              {{ form.longitude(class='form-control', placeholder='Ex: -7.9811') }}
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.street_view_lat.label(class='form-label') }}
+              {{ form.street_view_lat(class='form-control') }}
+            </div>
+            <div class="form-group">
+              {{ form.street_view_lng.label(class='form-label') }}
+              {{ form.street_view_lng(class='form-control') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Médias #}
+      <div class="admin-box" style="margin-bottom:20px;">
+        <div class="admin-box__header"><span class="admin-box__title">Médias</span></div>
+        <div class="admin-box__body">
+          <div class="form-group">
+            {{ form.image_main.label(class='form-label') }}
+            {{ form.image_main(class='form-control') }}
+            {% if dest and dest.image_main %}
+              <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="" style="width:120px;margin-top:8px;border-radius:6px;">
+            {% endif %}
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              {{ form.video_url.label(class='form-label') }}
+              {{ form.video_url(class='form-control', placeholder='https://…') }}
+            </div>
+            <div class="form-group">
+              {{ form.youtube_id.label(class='form-label') }}
+              {{ form.youtube_id(class='form-control', placeholder='Ex: dQw4w9WgXcQ') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# SEO #}
+      <div class="admin-box">
+        <div class="admin-box__header"><span class="admin-box__title">SEO</span></div>
+        <div class="admin-box__body">
+          <div class="form-group">
+            {{ form.meta_title_fr.label(class='form-label') }}
+            {{ form.meta_title_fr(class='form-control', placeholder='60 caractères max') }}
+          </div>
+          <div class="form-group">
+            {{ form.meta_desc_fr.label(class='form-label') }}
+            {{ form.meta_desc_fr(class='form-control', rows=3, placeholder='160 caractères max') }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Sidebar options #}
+    <div>
+      <div class="admin-box" style="margin-bottom:20px;">
+        <div class="admin-box__header"><span class="admin-box__title">Publication</span></div>
+        <div class="admin-box__body">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.86rem;">
+              {{ form.is_active(style='accent-color:var(--gold);width:18px;height:18px;') }}
+              <span>Active (visible sur le site)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.86rem;">
+              {{ form.is_featured(style='accent-color:var(--gold);width:18px;height:18px;') }}
+              <span>Mise en avant (accueil)</span>
+            </label>
+          </div>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border-dark);">
+            {{ form.submit(class='btn btn-gold', style='width:100%;justify-content:center;') }}
+            <a href="{{ url_for('admin.dest_list') }}" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px;">Annuler</a>
+          </div>
+        </div>
+      </div>
+
+      {% if dest %}
+      <div class="admin-box">
+        <div class="admin-box__header"><span class="admin-box__title">Aperçu</span></div>
+        <div class="admin-box__body" style="text-align:center;">
+          <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" class="btn btn-outline btn-sm" target="_blank" style="width:100%;justify-content:center;">
+            <i class="fa fa-eye"></i> Voir la page
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+{% endblock %}

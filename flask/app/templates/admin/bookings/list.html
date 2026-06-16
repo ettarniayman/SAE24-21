@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+{% block title %}Réservations — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Réservations <span>({{ pagination.total }})</span></h1>
+</div>
+<div class="admin-box">
+  <div class="admin-box__header">
+    <div style="display:flex;gap:8px;">
+      {% for s, label in [('','Toutes'),('pending','En attente'),('confirmed','Confirmées'),('cancelled','Annulées'),('completed','Terminées')] %}
+        <a href="{{ url_for('admin.booking_list', status=s) }}" class="btn btn-sm {{ 'btn-gold' if current_status == s else 'btn-ghost' }}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Réf.</th><th>Client</th><th>Programme</th><th>Date</th><th>Pers.</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td><a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}" style="color:var(--gold);font-family:monospace;font-size:0.82rem;">{{ b.reference }}</a></td>
+          <td><p style="font-size:0.88rem;font-weight:600;">{{ b.first_name }} {{ b.last_name }}</p><p style="font-size:0.72rem;color:var(--text-sub);">{{ b.email }}</p></td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">{{ b.program.name_fr[:35] ~ '…' if b.program and b.program.name_fr|length > 35 else (b.program.name_fr if b.program else '—') }}</td>
+          <td style="font-size:0.8rem;">{% if b.departure_date %}{{ b.departure_date.strftime('%d/%m/%Y') }}{% else %}—{% endif %}</td>
+          <td style="font-size:0.84rem;">{{ b.participants }}</td>
+          <td><span class="badge {% if b.status=='confirmed' %}badge-success{% elif b.status=='cancelled' %}badge-danger{% elif b.status=='completed' %}badge-gold{% else %}badge-muted{% endif %}">{{ b.status }}</span></td>
+          <td><a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-eye"></i></a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-sub);">Aucune réservation</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

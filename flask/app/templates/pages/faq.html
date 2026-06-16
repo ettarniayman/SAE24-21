@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}FAQ — RT Voyage{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>FAQ</span></nav>
+    <h1 class="page-hero__title">{% if current_lang=='en' %}Frequently Asked Questions{% else %}Questions Fréquentes{% endif %}</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container" style="max-width:800px;margin:0 auto;">
+    {% for category in categories %}
+    <div style="margin-bottom:48px;">
+      <h2 style="font-family:var(--font-serif);font-size:1.7rem;color:var(--gold);margin-bottom:24px;">
+        {{ category.name_fr if current_lang=='fr' else category.name_en }}
+      </h2>
+      {% for item in category.items %}
+      <div class="faq-item" style="border:1px solid var(--gold-border);border-radius:var(--radius-sm);margin-bottom:12px;overflow:hidden;">
+        <button class="faq-question" onclick="toggleFaq(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:var(--bg-card);border:none;cursor:pointer;text-align:left;color:var(--text-light);font-family:var(--font-sans);font-size:0.92rem;font-weight:600;transition:background 0.2s;">
+          {{ item.question_fr if current_lang=='fr' else item.question_en }}
+          <i class="fa fa-plus" style="color:var(--gold);font-size:0.75rem;flex-shrink:0;margin-left:12px;transition:transform 0.3s;"></i>
+        </button>
+        <div class="faq-answer" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+          <div style="padding:18px 20px;font-size:0.88rem;line-height:1.7;color:var(--text-muted);background:var(--bg-card2);">
+            {{ item.answer_fr if current_lang=='fr' else item.answer_en }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--text-sub);text-align:center;padding:60px 0;">Aucune question disponible.</p>
+    {% endfor %}
+
+    <div style="text-align:center;margin-top:48px;padding:40px;background:var(--bg-card);border:1px solid var(--gold-border);border-radius:var(--radius-md);">
+      <p style="font-family:var(--font-serif);font-size:1.4rem;color:var(--text-light);margin-bottom:8px;">{% if current_lang=='en' %}Still have questions?{% else %}Votre question n'est pas ici ?{% endif %}</p>
+      <p style="font-size:0.86rem;color:var(--text-sub);margin-bottom:20px;">{% if current_lang=='en' %}Our team is here to help{% else %}Notre équipe est là pour vous aider{% endif %}</p>
+      <a href="{{ url_for('contact.index') }}" class="btn btn-gold">
+        <i class="fa fa-envelope"></i> {% if current_lang=='en' %}Contact Us{% else %}Nous contacter{% endif %}
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const icon = btn.querySelector('i');
+  const isOpen = answer.style.maxHeight && answer.style.maxHeight !== '0px';
+  document.querySelectorAll('.faq-answer').forEach(a => a.style.maxHeight = '0px');
+  document.querySelectorAll('.faq-question i').forEach(i => { i.className = 'fa fa-plus'; i.style.transform = ''; });
+  if (!isOpen) {
+    answer.style.maxHeight = answer.scrollHeight + 'px';
+    icon.className = 'fa fa-minus';
+    icon.style.transform = 'rotate(180deg)';
+  }
+}
+</script>
+{% endblock %}

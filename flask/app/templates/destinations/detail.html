@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+{% block title %}{{ dest.get_name(current_lang) }} — RT Voyage{% endblock %}
+{% block meta_desc %}{{ dest.get_short_desc(current_lang) or '' }}{% endblock %}
+{% block og_image %}{% if dest.image_main %}{{ url_for('static', filename='images/destinations/' ~ dest.image_main, _external=True) }}{% else %}{{ super() }}{% endif %}{% endblock %}
+
+{% block schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TouristDestination",
+  "name": "{{ dest.get_name(current_lang) }}",
+  "description": "{{ dest.get_short_desc(current_lang) or '' }}",
+  {% if dest.latitude and dest.longitude %}
+  "geo": {"@type":"GeoCoordinates","latitude": {{ dest.latitude }},"longitude": {{ dest.longitude }}},
+  {% endif %}
+  "url": "{{ request.url }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+{# ── HERO ── #}
+<div class="dest-hero">
+  {% if dest.image_main %}
+    <img class="dest-hero__img" src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="{{ dest.get_name(current_lang) }}">
+  {% else %}
+    <div class="dest-hero__img" style="background:var(--bg-card2);"></div>
+  {% endif %}
+  <div class="dest-hero__overlay"></div>
+
+  <div class="dest-hero__content">
+    <nav class="breadcrumb" style="margin-bottom:16px;">
+      <a href="{{ url_for('main.index') }}" style="color:rgba(255,255,255,0.6);">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a>
+      <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
+      <a href="{{ url_for('destinations.list_destinations') }}" style="color:rgba(255,255,255,0.6);">Destinations</a>
+      <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
+      <span class="breadcrumb__current">{{ dest.get_name(current_lang) }}</span>
+    </nav>
+
+    <p class="dest-hero__country">
+      {{ dest.country.flag_emoji if dest.country and dest.country.flag_emoji else '' }}
+      {{ dest.country.name_fr if dest.country else '' }}
+      {% if dest.region %} — {{ dest.region }}{% endif %}
+    </p>
+    <h1 class="dest-hero__name">{{ dest.get_name(current_lang) }}</h1>
+
+    <div class="dest-hero__meta">
+      {% if dest.avg_rating > 0 %}
+        <span class="dest-hero__badge">
+          <i class="fa fa-star"></i> {{ dest.avg_rating }}/5 ({{ dest.review_count }} avis)
+        </span>
+      {% endif %}
+      {% if dest.average_budget_eur %}
+        <span class="dest-hero__badge">
+          <i class="fa fa-wallet"></i> ~{{ dest.average_budget_eur }}€/{% if current_lang=='fr' %}jour{% else %}day{% endif %}
+        </span>
+      {% endif %}
+      {% if dest.best_period_fr and current_lang == 'fr' %}
+        <span class="dest-hero__badge">
+          <i class="fa fa-calendar-star"></i> {{ dest.best_period_fr }}
+        </span>
+      {% endif %}
+      <span class="dest-hero__badge">
+        <i class="fa fa-eye"></i> {{ dest.view_count }} {% if current_lang=='fr' %}vues{% else %}views{% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+
+<div style="padding:0 5vw;">
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:40px;max-width:1400px;margin:0 auto;padding:50px 0;" class="dest-layout">
+
+    {# ── MAIN COLUMN ── #}
+    <div>
+
+      {# Description #}
+      {% if dest.get_long_desc(current_lang) %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}À propos{% else %}About{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:2rem;margin:8px 0 16px;">
+          {% if current_lang=='fr' %}Découvrez <span style="color:var(--gold)">{{ dest.name_fr }}</span>{% else %}Discover <span style="color:var(--gold)">{{ dest.name_en }}</span>{% endif %}
+        </h2>
+        <div class="gold-div" style="margin:0 0 20px;"></div>
+        <div style="font-size:0.94rem;color:var(--text-muted);line-height:1.9;">
+          {{ dest.get_long_desc(current_lang) | safe }}
+        </div>
+      </section>
+      {% endif %}
+
+      {# Tabs : Histoire | Culture | Gastronomie | Climat #}
+      <div style="margin-bottom:48px;">
+        <div style="display:flex;gap:4px;border-bottom:1px solid var(--gold-border);margin-bottom:24px;" id="destTabs">
+          {% for tab_key, tab_fr, tab_en in [('history','Histoire','History'),('culture','Culture','Culture'),('gastronomy','Gastronomie','Gastronomy'),('climate','Climat','Climate')] %}
+            <button class="tab-btn {% if loop.first %}active{% endif %}"
+                    data-tab="{{ tab_key }}"
+                    style="background:none;border:none;padding:10px 18px;cursor:pointer;font-family:var(--font-sans);font-size:0.78rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{% if loop.first %}var(--gold){% else %}var(--text-muted){% endif %};border-bottom:2px solid {% if loop.first %}var(--gold){% else %}transparent{% endif %};margin-bottom:-1px;transition:0.2s;">
+              {{ tab_fr if current_lang=='fr' else tab_en }}
+            </button>
+          {% endfor %}
+        </div>
+        {% for tab_key, content_attr in [('history', dest.history_fr), ('culture', dest.culture_fr), ('gastronomy', dest.gastronomy_fr), ('climate', dest.climate_fr)] %}
+          <div class="tab-content" id="tab-{{ tab_key }}" {% if not loop.first %}style="display:none;"{% endif %}>
+            <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.9;">
+              {{ content_attr or ('—' if current_lang=='fr' else '—') }}
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {# Activités #}
+      {% if activities %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}À faire{% else %}Things to do{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
+          {% if current_lang=='fr' %}Activités & <em style="color:var(--gold)">Expériences</em>{% else %}Activities & <em style="color:var(--gold)">Experiences</em>{% endif %}
+        </h2>
+        <div class="grid grid-auto">
+          {% for act in activities %}
+          <div class="card" style="padding:20px;display:flex;align-items:flex-start;gap:14px;">
+            <div style="width:42px;height:42px;flex-shrink:0;border-radius:var(--radius-sm);background:var(--gold-glow);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;">
+              <i class="fa {% if act.activity_type == 'stadium' %}fa-futbol{% elif act.activity_type == 'museum' %}fa-building-columns{% elif act.activity_type == 'hike' %}fa-person-hiking{% elif act.activity_type == 'beach' %}fa-umbrella-beach{% elif act.activity_type == 'desert' %}fa-sun{% else %}fa-star{% endif %}" style="color:var(--gold);"></i>
+            </div>
+            <div>
+              <h4 style="font-size:0.9rem;margin-bottom:4px;">{{ act.name_fr if current_lang=='fr' else act.name_en or act.name_fr }}</h4>
+              {% if act.price_per_person %}
+                <span style="font-size:0.72rem;color:var(--gold);">{{ act.price_per_person }}€ / {% if current_lang=='fr' %}pers.{% else %}pax{% endif %}</span>
+              {% endif %}
+              {% if act.duration_hours %}
+                <span style="font-size:0.72rem;color:var(--text-sub);margin-left:8px;">{{ act.duration_hours }}h</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {# Galerie médias #}
+      {% if medias %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Galerie photos{% else %}Photo gallery{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
+          {% if current_lang=='fr' %}<em style="color:var(--gold)">Photos</em>{% else %}<em style="color:var(--gold)">Photos</em>{% endif %}
+        </h2>
+        <div class="gallery-grid" id="galleryGrid">
+          {% for media in medias %}
+          <div class="gallery-item" data-src="{{ url_for('static', filename='images/uploads/' ~ media.filename) }}" onclick="openLightbox(this)">
+            <img src="{{ url_for('static', filename='images/uploads/' ~ media.filename) }}"
+                 alt="{{ media.alt_fr or media.title_fr or dest.get_name(current_lang) }}" loading="lazy">
+            <div class="gallery-item__overlay"><i class="fa fa-expand"></i></div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {# Vidéo YouTube #}
+      {% if dest.youtube_id %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Vidéo{% else %}Video{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
+          {% if current_lang=='fr' %}Découvrir en <em style="color:var(--gold)">Vidéo</em>{% else %}Discover in <em style="color:var(--gold)">Video</em>{% endif %}
+        </h2>
+        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--gold-border);">
+          <iframe src="https://www.youtube.com/embed/{{ dest.youtube_id }}"
+                  style="position:absolute;inset:0;width:100%;height:100%;"
+                  frameborder="0" allowfullscreen loading="lazy"
+                  title="{{ dest.get_name(current_lang) }} — Video"></iframe>
+        </div>
+      </section>
+      {% endif %}
+
+      {# Carte Google Maps #}
+      {% if dest.latitude and dest.longitude %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Localisation{% else %}Location{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
+          {% if current_lang=='fr' %}Carte & <em style="color:var(--gold)">Localisation</em>{% else %}Map & <em style="color:var(--gold)">Location</em>{% endif %}
+        </h2>
+        <div class="map-container" id="destMap" data-lat="{{ dest.latitude }}" data-lng="{{ dest.longitude }}" data-name="{{ dest.get_name(current_lang) }}"></div>
+        {% if dest.street_view_lat and dest.street_view_lng %}
+          <div class="map-container" style="margin-top:16px;height:350px;" id="streetView" data-sv-lat="{{ dest.street_view_lat }}" data-sv-lng="{{ dest.street_view_lng }}"></div>
+          <p style="font-size:0.72rem;color:var(--text-sub);margin-top:8px;text-align:center;">Google Street View — {{ dest.get_name(current_lang) }}</p>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      {# Hôtels #}
+      {% if hotels %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Où dormir{% else %}Where to sleep{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
+          {% if current_lang=='fr' %}Nos <em style="color:var(--gold)">Hôtels</em> recommandés{% else %}Recommended <em style="color:var(--gold)">Hotels</em>{% endif %}
+        </h2>
+        <div class="grid grid-2">
+          {% for hotel in hotels %}
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div style="display:flex;gap:0;">
+              {% if hotel.image_main %}
+                <img src="{{ url_for('static', filename='images/uploads/' ~ hotel.image_main) }}"
+                     alt="{{ hotel.name }}" loading="lazy"
+                     style="width:110px;height:100%;object-fit:cover;flex-shrink:0;">
+              {% endif %}
+              <div style="padding:18px;flex:1;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+                  <h4 style="font-size:0.92rem;">{{ hotel.name }}</h4>
+                  {% if hotel.stars %}
+                    <span style="color:var(--gold);font-size:0.8rem;">{{ '★' * hotel.stars }}</span>
+                  {% endif %}
+                </div>
+                <p style="font-size:0.72rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">{{ hotel.hotel_type | title }}</p>
+                {% if hotel.price_min %}
+                  <p style="font-size:0.8rem;color:var(--gold);">{% if current_lang=='fr' %}Dès{% else %}From{% endif %} <strong>{{ hotel.price_min }}€</strong>/nuit</p>
+                {% endif %}
+                {% if hotel.booking_url %}
+                  <a href="{{ hotel.booking_url }}" target="_blank" rel="noopener" class="btn btn-gold btn-sm" style="margin-top:10px;">
+                    {% if current_lang=='fr' %}Réserver{% else %}Book{% endif %}
+                  </a>
+                {% else %}
+                  <a href="{{ url_for('hotels.detail', slug=hotel.slug) }}" class="btn btn-ghost btn-sm" style="margin-top:10px;">
+                    {% if current_lang=='fr' %}Voir{% else %}View{% endif %}
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="{{ url_for('hotels.list_hotels', destination=dest.id) }}" class="btn btn-outline btn-sm">
+            {% if current_lang=='fr' %}Tous les hôtels{% else %}All hotels{% endif %}
+          </a>
+        </div>
+      </section>
+      {% endif %}
+
+      {# Programmes associés #}
+      {% if programs %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Circuits{% else %}Tours{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
+          {% if current_lang=='fr' %}Programmes incluant <em style="color:var(--gold)">{{ dest.get_name(current_lang) }}</em>{% else %}Programs including <em style="color:var(--gold)">{{ dest.get_name(current_lang) }}</em>{% endif %}
+        </h2>
+        <div class="grid grid-2">
+          {% for prog in programs %}
+            {% with prog=prog %}{% include 'partials/_programme_card.html' %}{% endwith %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {# Témoignages #}
+      {% if testimonials %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Avis voyageurs{% else %}Traveler reviews{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
+          <em style="color:var(--gold)">{% if current_lang=='fr' %}Témoignages{% else %}Reviews{% endif %}</em>
+        </h2>
+        <div class="grid grid-2">
+          {% for t in testimonials %}
+            {% with t=t %}{% include 'partials/_temoignage_card.html' %}{% endwith %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+    </div>
+
+    {# ── SIDEBAR ── #}
+    <aside style="position:sticky;top:90px;align-self:flex-start;">
+
+      {# Infos pratiques #}
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <h3 style="font-family:var(--font-serif);font-size:1.2rem;margin-bottom:16px;">
+          {% if current_lang=='fr' %}Infos <span style="color:var(--gold)">pratiques</span>{% else %}Practical <span style="color:var(--gold)">info</span>{% endif %}
+        </h3>
+        <ul style="display:flex;flex-direction:column;gap:12px;">
+          {% if dest.country %}
+          <li style="display:flex;gap:12px;font-size:0.84rem;">
+            <i class="fa fa-globe" style="color:var(--gold);width:18px;margin-top:2px;flex-shrink:0;"></i>
+            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Pays{% else %}Country{% endif %}</strong><br><span style="color:var(--text-muted);">{{ dest.country.name_fr }}</span></span>
+          </li>
+          {% endif %}
+          {% if dest.country and dest.country.currency %}
+          <li style="display:flex;gap:12px;font-size:0.84rem;">
+            <i class="fa fa-coins" style="color:var(--gold);width:18px;margin-top:2px;flex-shrink:0;"></i>
+            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Monnaie{% else %}Currency{% endif %}</strong><br><span style="color:var(--text-muted);">{{ dest.country.currency }}</span></span>
+          </li>
+          {% endif %}
+          {% if dest.country and dest.country.language %}
+          <li style="display:flex;gap:12px;font-size:0.84rem;">
+            <i class="fa fa-language" style="color:var(--gold);width:18px;margin-top:2px;flex-shrink:0;"></i>
+            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Langue{% else %}Language{% endif %}</strong><br><span style="color:var(--text-muted);">{{ dest.country.language }}</span></span>
+          </li>
+          {% endif %}
+          {% if dest.average_budget_eur %}
+          <li style="display:flex;gap:12px;font-size:0.84rem;">
+            <i class="fa fa-wallet" style="color:var(--gold);width:18px;margin-top:2px;flex-shrink:0;"></i>
+            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Budget moyen{% else %}Average budget{% endif %}</strong><br><span style="color:var(--text-muted);">~{{ dest.average_budget_eur }}€/{% if current_lang=='fr' %}jour{% else %}day{% endif %}</span></span>
+          </li>
+          {% endif %}
+          {% if dest.best_period_fr %}
+          <li style="display:flex;gap:12px;font-size:0.84rem;">
+            <i class="fa fa-calendar-check" style="color:var(--gold);width:18px;margin-top:2px;flex-shrink:0;"></i>
+            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Meilleure période{% else %}Best time{% endif %}</strong><br><span style="color:var(--text-muted);">{{ dest.best_period_fr if current_lang=='fr' else dest.best_period_en or dest.best_period_fr }}</span></span>
+          </li>
+          {% endif %}
+          <li style="display:flex;gap:12px;font-size:0.84rem;">
+            <i class="fa fa-shield-halved" style="color:var(--gold);width:18px;margin-top:2px;flex-shrink:0;"></i>
+            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Sécurité{% else %}Safety{% endif %}</strong><br>
+              <span class="badge {% if dest.safety_level == 'safe' %}badge-success{% elif dest.safety_level == 'caution' %}badge-danger{% else %}badge-gold{% endif %}">{{ dest.safety_level | title }}</span>
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      {# CTA Réservation #}
+      <div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,rgba(201,169,110,0.08),transparent);">
+        <i class="fa fa-paper-plane" style="font-size:2rem;color:var(--gold);margin-bottom:14px;display:block;"></i>
+        <h3 style="font-family:var(--font-serif);font-size:1.2rem;margin-bottom:10px;">
+          {% if current_lang=='fr' %}Réserver ce voyage{% else %}Book this trip{% endif %}
+        </h3>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:18px;">
+          {% if current_lang=='fr' %}Nos conseillers créent votre programme sur mesure.{% else %}Our advisors craft your tailor-made program.{% endif %}
+        </p>
+        <a href="{{ url_for('contact.index') }}?destination={{ dest.name_fr | urlencode }}" class="btn btn-gold" style="width:100%;justify-content:center;">
+          <i class="fa fa-envelope"></i>
+          {% if current_lang=='fr' %}Nous contacter{% else %}Contact us{% endif %}
+        </a>
+        <a href="{{ url_for('programs.list_programs') }}?q={{ dest.name_fr | urlencode }}" class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:10px;">
+          <i class="fa fa-route"></i>
+          {% if current_lang=='fr' %}Voir les programmes{% else %}View programs{% endif %}
+        </a>
+      </div>
+
+      {# Destinations similaires #}
+      {% if related %}
+      <div style="margin-top:24px;">
+        <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">
+          {% if current_lang=='fr' %}Destinations similaires{% else %}Similar destinations{% endif %}
+        </p>
+        {% for r in related %}
+        <a href="{{ url_for('destinations.detail', slug=r.slug) }}" style="display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-dark);text-decoration:none;">
+          {% if r.image_thumb or r.image_main %}
+            <img src="{{ url_for('static', filename='images/destinations/' ~ (r.image_thumb or r.image_main)) }}"
+                 alt="{{ r.name_fr }}" loading="lazy"
+                 style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+          {% endif %}
+          <div>
+            <p style="font-size:0.86rem;color:var(--text-white);">{{ r.get_name(current_lang) }}</p>
+            <p style="font-size:0.72rem;color:var(--text-muted);">{{ r.country.name_fr if r.country else '' }}</p>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+
+{# Lightbox #}
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Galerie photo">
+  <button class="lightbox__close" onclick="closeLightbox()" aria-label="Fermer"><i class="fa fa-times"></i></button>
+  <button class="lightbox__prev" onclick="lightboxPrev()" aria-label="Précédent"><i class="fa fa-chevron-left"></i></button>
+  <img class="lightbox__img" id="lightboxImg" src="" alt="">
+  <button class="lightbox__next" onclick="lightboxNext()" aria-label="Suivant"><i class="fa fa-chevron-right"></i></button>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+{% if dest.latitude and dest.longitude %}
+<script src="{{ url_for('static', filename='js/maps.js') }}"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initDestinationMap"></script>
+{% endif %}
+<script>
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.style.color = 'var(--text-muted)';
+      b.style.borderBottomColor = 'transparent';
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    btn.style.color = 'var(--gold)';
+    btn.style.borderBottomColor = 'var(--gold)';
+    document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}{{ program.name_fr if current_lang=='fr' else program.name_en or program.name_fr }} — RT Voyage{% endblock %}
+
+{% block content %}
+
+{# Hero #}
+<div class="dest-hero" style="height:55vh;">
+  {% if program.image_main %}
+    <img class="dest-hero__img" src="{{ url_for('static', filename='images/uploads/' ~ program.image_main) }}" alt="{{ program.name_fr }}">
+  {% else %}
+    <div class="dest-hero__img" style="background:var(--bg-card2);"></div>
+  {% endif %}
+  <div class="dest-hero__overlay"></div>
+  <div class="dest-hero__content">
+    <nav class="breadcrumb" style="margin-bottom:16px;">
+      <a href="{{ url_for('main.index') }}" style="color:rgba(255,255,255,0.6);">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a>
+      <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
+      <a href="{{ url_for('programs.list_programs') }}" style="color:rgba(255,255,255,0.6);">{% if current_lang=='fr' %}Programmes{% else %}Programs{% endif %}</a>
+      <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
+      <span class="breadcrumb__current">{{ program.name_fr }}</span>
+    </nav>
+    {% if program.theme %}
+      <p class="dest-hero__country"><i class="fa fa-tag"></i> {{ program.theme | title }}</p>
+    {% endif %}
+    <h1 class="dest-hero__name">{{ program.name_fr if current_lang=='fr' else program.name_en or program.name_fr }}</h1>
+    <div class="dest-hero__meta">
+      <span class="dest-hero__badge"><i class="fa fa-calendar-days"></i> {{ program.duration_days }} {% if current_lang=='fr' %}jours{% else %}days{% endif %}</span>
+      {% if program.price_per_person %}
+        <span class="dest-hero__badge"><i class="fa fa-tag"></i>
+          {% if program.price_per_person_discounted %}{{ program.price_per_person_discounted }}€{% else %}{{ program.price_per_person }}€{% endif %}
+          / {% if current_lang=='fr' %}personne{% else %}person{% endif %}
+        </span>
+      {% endif %}
+      <span class="dest-hero__badge"><i class="fa fa-users"></i> {{ program.group_min }}–{{ program.group_max }} {% if current_lang=='fr' %}pers.{% else %}pax{% endif %}</span>
+    </div>
+  </div>
+</div>
+
+<div style="padding:0 5vw;">
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:40px;max-width:1400px;margin:0 auto;padding:50px 0;" class="dest-layout">
+
+    <div>
+      {# Description #}
+      {% if program.description_fr %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Le voyage{% else %}The trip{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:2rem;margin:8px 0 16px;">
+          {% if current_lang=='fr' %}À propos de ce <em style="color:var(--gold)">programme</em>{% else %}About this <em style="color:var(--gold)">program</em>{% endif %}
+        </h2>
+        <div class="gold-div" style="margin:0 0 20px;"></div>
+        <p style="font-size:0.94rem;color:var(--text-muted);line-height:1.9;">{{ program.description_fr }}</p>
+      </section>
+      {% endif %}
+
+      {# Inclus / Non inclus #}
+      {% if program.includes_fr or program.excludes_fr %}
+      <section style="margin-bottom:48px;">
+        <div class="grid grid-2">
+          {% if program.includes_fr %}
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--success);margin-bottom:14px;">
+              <i class="fa fa-circle-check"></i> {% if current_lang=='fr' %}Inclus{% else %}Included{% endif %}
+            </h3>
+            <ul style="display:flex;flex-direction:column;gap:8px;">
+              {% for line in program.includes_fr.split('\n') if line.strip() %}
+                <li style="font-size:0.84rem;color:var(--text-muted);display:flex;gap:8px;"><span style="color:var(--success);">✓</span> {{ line.strip() }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          {% if program.excludes_fr %}
+          <div class="card" style="padding:22px;">
+            <h3 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent-red);margin-bottom:14px;">
+              <i class="fa fa-circle-xmark"></i> {% if current_lang=='fr' %}Non inclus{% else %}Not included{% endif %}
+            </h3>
+            <ul style="display:flex;flex-direction:column;gap:8px;">
+              {% for line in program.excludes_fr.split('\n') if line.strip() %}
+                <li style="font-size:0.84rem;color:var(--text-muted);display:flex;gap:8px;"><span style="color:var(--accent-red);">✗</span> {{ line.strip() }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      {# Itinéraire #}
+      {% if days %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Itinéraire{% else %}Itinerary{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:2rem;margin:8px 0 24px;">
+          {% if current_lang=='fr' %}Jour par <em style="color:var(--gold)">Jour</em>{% else %}Day by <em style="color:var(--gold)">Day</em>{% endif %}
+        </h2>
+
+        <div class="timeline">
+          {% for day in days %}
+          <div class="timeline-day">
+            <p class="timeline-day__num">{% if current_lang=='fr' %}Jour{% else %}Day{% endif %} {{ day.day_number }}</p>
+            <h3 class="timeline-day__title">{{ day.title_fr if current_lang=='fr' else day.title_en or day.title_fr }}</h3>
+            <div class="timeline-day__body">
+              {% if day.morning_fr %}
+              <div style="margin-bottom:12px;">
+                <p style="font-size:0.7rem;font-weight:700;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;"><i class="fa fa-sun"></i> {% if current_lang=='fr' %}Matin{% else %}Morning{% endif %}</p>
+                <p style="font-size:0.88rem;color:var(--text-muted);">{{ day.morning_fr if current_lang=='fr' else day.morning_en or day.morning_fr }}</p>
+              </div>
+              {% endif %}
+              {% if day.afternoon_fr %}
+              <div style="margin-bottom:12px;">
+                <p style="font-size:0.7rem;font-weight:700;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;"><i class="fa fa-cloud-sun"></i> {% if current_lang=='fr' %}Après-midi{% else %}Afternoon{% endif %}</p>
+                <p style="font-size:0.88rem;color:var(--text-muted);">{{ day.afternoon_fr if current_lang=='fr' else day.afternoon_en or day.afternoon_fr }}</p>
+              </div>
+              {% endif %}
+              {% if day.evening_fr %}
+              <div style="margin-bottom:12px;">
+                <p style="font-size:0.7rem;font-weight:700;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;"><i class="fa fa-moon"></i> {% if current_lang=='fr' %}Soirée{% else %}Evening{% endif %}</p>
+                <p style="font-size:0.88rem;color:var(--text-muted);">{{ day.evening_fr if current_lang=='fr' else day.evening_en or day.evening_fr }}</p>
+              </div>
+              {% endif %}
+              {% if day.description_fr and not (day.morning_fr or day.afternoon_fr or day.evening_fr) %}
+                <p style="font-size:0.88rem;color:var(--text-muted);">{{ day.description_fr }}</p>
+              {% endif %}
+              {% if day.accommodation or day.meals_included %}
+              <div class="timeline-day__meals">
+                {% if day.accommodation %}
+                  <span class="meal-badge"><i class="fa fa-hotel"></i> {{ day.accommodation }}</span>
+                {% endif %}
+                {% if day.meals_included %}
+                  {% for char in day.meals_included %}
+                    <span class="meal-badge">
+                      {% if char == 'B' %}🍳 {% if current_lang=='fr' %}Petit-dej{% else %}Breakfast{% endif %}
+                      {% elif char == 'L' %}🥗 {% if current_lang=='fr' %}Déjeuner{% else %}Lunch{% endif %}
+                      {% elif char == 'D' %}🍽️ {% if current_lang=='fr' %}Dîner{% else %}Dinner{% endif %}
+                      {% endif %}
+                    </span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      {# Related #}
+      {% if related %}
+      <section>
+        <span class="s-tag">{% if current_lang=='fr' %}Programmes similaires{% else %}Similar programs{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.6rem;margin:8px 0 20px;">{% if current_lang=='fr' %}Autres <em style="color:var(--gold)">Programmes</em>{% else %}Other <em style="color:var(--gold)">Programs</em>{% endif %}</h2>
+        <div class="grid grid-3">
+          {% for r in related %}{% with prog=r %}{% include 'partials/_programme_card.html' %}{% endwith %}{% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </div>
+
+    {# Sidebar #}
+    <aside style="position:sticky;top:90px;align-self:flex-start;">
+      <div class="card" style="padding:28px;text-align:center;background:linear-gradient(135deg,rgba(201,169,110,0.08),transparent);margin-bottom:20px;">
+        <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">{% if current_lang=='fr' %}Prix par personne{% else %}Price per person{% endif %}</p>
+        {% if program.price_per_person_discounted %}
+          <p style="font-size:0.9rem;color:var(--text-sub);text-decoration:line-through;margin-bottom:4px;">{{ program.price_per_person }}€</p>
+          <p style="font-family:var(--font-serif);font-size:2.8rem;color:var(--gold);line-height:1;margin-bottom:4px;">{{ program.price_per_person_discounted }}€</p>
+        {% elif program.price_per_person %}
+          <p style="font-family:var(--font-serif);font-size:2.8rem;color:var(--gold);line-height:1;margin-bottom:4px;">{{ program.price_per_person }}€</p>
+        {% else %}
+          <p style="font-size:1.2rem;color:var(--text-muted);">{% if current_lang=='fr' %}Sur devis{% else %}On request{% endif %}</p>
+        {% endif %}
+        <p style="font-size:0.76rem;color:var(--text-sub);margin-bottom:24px;">{{ program.duration_days }} {% if current_lang=='fr' %}jours / {{ program.duration_nights or program.duration_days - 1 }} nuits{% else %}days / {{ program.duration_nights or program.duration_days - 1 }} nights{% endif %}</p>
+        <a href="{{ url_for('contact.index') }}?sujet=reservation&programme={{ program.name_fr | urlencode }}" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:10px;">
+          <i class="fa fa-calendar-check"></i> {% if current_lang=='fr' %}Réserver{% else %}Book{% endif %}
+        </a>
+        <a href="{{ url_for('contact.index') }}?sujet=information&programme={{ program.name_fr | urlencode }}" class="btn btn-outline" style="width:100%;justify-content:center;">
+          <i class="fa fa-question-circle"></i> {% if current_lang=='fr' %}Demander un devis{% else %}Request a quote{% endif %}
+        </a>
+      </div>
+
+      <div class="card" style="padding:22px;">
+        <h3 style="font-size:0.8rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;">{% if current_lang=='fr' %}Détails du programme{% else %}Program details{% endif %}</h3>
+        <ul style="display:flex;flex-direction:column;gap:12px;">
+          <li style="display:flex;justify-content:space-between;font-size:0.84rem;">
+            <span style="color:var(--text-muted);"><i class="fa fa-calendar-days" style="color:var(--gold);width:18px;"></i> {% if current_lang=='fr' %}Durée{% else %}Duration{% endif %}</span>
+            <strong>{{ program.duration_days }}j</strong>
+          </li>
+          <li style="display:flex;justify-content:space-between;font-size:0.84rem;">
+            <span style="color:var(--text-muted);"><i class="fa fa-users" style="color:var(--gold);width:18px;"></i> {% if current_lang=='fr' %}Groupe{% else %}Group{% endif %}</span>
+            <strong>{{ program.group_min }}–{{ program.group_max }}</strong>
+          </li>
+          {% if program.difficulty %}
+          <li style="display:flex;justify-content:space-between;font-size:0.84rem;">
+            <span style="color:var(--text-muted);"><i class="fa fa-gauge" style="color:var(--gold);width:18px;"></i> {% if current_lang=='fr' %}Difficulté{% else %}Difficulty{% endif %}</span>
+            <span class="badge badge-gold">{{ program.difficulty | title }}</span>
+          </li>
+          {% endif %}
+          {% if program.departure_city %}
+          <li style="display:flex;justify-content:space-between;font-size:0.84rem;">
+            <span style="color:var(--text-muted);"><i class="fa fa-plane-departure" style="color:var(--gold);width:18px;"></i> {% if current_lang=='fr' %}Départ{% else %}Departure{% endif %}</span>
+            <strong>{{ program.departure_city }}</strong>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

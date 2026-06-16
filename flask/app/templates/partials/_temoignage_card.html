@@ -1,0 +1,29 @@
+{# Usage: {% include 'partials/_temoignage_card.html' with t=testimonial %} #}
+<div class="testi-card">
+  <div class="testi-card__stars" aria-label="Note {{ t.rating }}/5">
+    {% for i in range(5) %}{% if i < t.rating %}★{% else %}<span style="color:var(--text-sub)">☆</span>{% endif %}{% endfor %}
+  </div>
+  {% if t.title %}
+    <p style="font-size:0.8rem;font-weight:600;color:var(--gold);margin-bottom:8px;">« {{ t.title }} »</p>
+  {% endif %}
+  <blockquote class="testi-card__quote">
+    "{{ t.comment | truncate(220) }}"
+  </blockquote>
+  <div class="testi-card__author">
+    {% if t.client_photo %}
+      <img class="testi-card__avatar"
+           src="{{ url_for('static', filename='images/uploads/' ~ t.client_photo) }}"
+           alt="{{ t.client_name }}" loading="lazy">
+    {% else %}
+      <div class="testi-card__avatar-placeholder">{{ t.client_name[0] | upper }}</div>
+    {% endif %}
+    <div>
+      <div class="testi-card__name">{{ t.client_name }}</div>
+      <div class="testi-card__dest">
+        {{ t.client_country or '' }}
+        {% if t.destination %}— {{ t.destination.name_fr }}{% endif %}
+        {% if t.travel_date %} · {{ t.travel_date.strftime('%b %Y') }}{% endif %}
+      </div>
+    </div>
+  </div>
+</div>

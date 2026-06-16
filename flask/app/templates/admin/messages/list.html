@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% block title %}Messages — Admin{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Messages <span>Contact</span></h1></div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Expéditeur</th><th>Sujet</th><th>Destination</th><th>Lu</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for msg in messages %}
+        <tr style="{{ 'background:rgba(201,169,110,0.04)' if not msg.is_read else '' }}">
+          <td><p style="font-weight:{{ '700' if not msg.is_read else '400' }};font-size:0.88rem;">{{ msg.first_name }} {{ msg.last_name }}</p><p style="font-size:0.74rem;color:var(--text-sub);">{{ msg.email }}</p></td>
+          <td style="font-size:0.84rem;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ msg.subject }}</td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">{{ msg.destination_interest or '—' }}</td>
+          <td><span class="badge {{ 'badge-success' if msg.is_read else 'badge-danger' }}">{{ 'Lu' if msg.is_read else 'Non lu' }}</span></td>
+          <td style="font-size:0.76rem;color:var(--text-sub);">{{ msg.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td><div class="actions">
+            <a href="{{ url_for('admin.message_detail', msg_id=msg.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-eye"></i></a>
+            <form action="{{ url_for('admin.message_delete', msg_id=msg.id) }}" method="POST" onsubmit="return confirm('Supprimer ?');" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+            </form>
+          </div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-sub);">Aucun message</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

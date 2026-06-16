@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% block title %}Modifier utilisateur — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Modifier <span>{{ user.username }}</span></h1>
+  <a href="{{ url_for('admin.user_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Retour</a>
+</div>
+<div style="max-width:500px;">
+  <div class="admin-box">
+    <div class="admin-box__header"><span class="admin-box__title">Informations</span></div>
+    <div class="admin-box__body">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:18px;">Email : {{ user.email }}</p>
+        <div class="form-group">{{ form.role.label(class='form-label') }}{{ form.role(class='form-control') }}</div>
+        <div class="form-group">{{ form.password.label(class='form-label') }}{{ form.password(class='form-control', placeholder='Laisser vide = inchangé') }}</div>
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:20px;cursor:pointer;font-size:0.86rem;">
+          {{ form.is_active(style='accent-color:var(--gold);width:16px;height:16px;') }}
+          <span>{{ form.is_active.label.text }}</span>
+        </label>
+        {{ form.submit(class='btn btn-gold') }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Contact — RT Voyage{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Contact</span></nav>
+    <h1 class="page-hero__title">{% if current_lang=='en' %}Contact Us{% else %}Contactez-Nous{% endif %}</h1>
+    <p class="page-hero__sub">{% if current_lang=='en' %}Our team replies within 24 hours{% else %}Notre équipe vous répond sous 24 h{% endif %}</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:48px;align-items:start;">
+
+      <div>
+        <h2 style="font-family:var(--font-serif);font-size:1.9rem;color:var(--gold);margin-bottom:24px;">{% if current_lang=='en' %}Get in touch{% else %}Nos coordonnées{% endif %}</h2>
+        {% for icon, label, val in [('fa-map-marker-alt','Adresse','123 Rue Mohammed V, Casablanca, Maroc'),('fa-phone','Téléphone','+212 5 22 XX XX XX'),('fa-envelope','Email','contact@rtvoyage.ma'),('fa-clock','Horaires','Lun – Ven : 09h – 18h')] %}
+        <div style="display:flex;gap:16px;margin-bottom:24px;">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa {{ icon }}" style="color:var(--gold);font-size:1rem;"></i>
+          </div>
+          <div>
+            <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:4px;">{{ label }}</p>
+            <p style="font-size:0.9rem;color:var(--text-muted);">{{ val }}</p>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div style="margin-top:32px;">
+          <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:14px;">Réseaux sociaux</p>
+          <div style="display:flex;gap:12px;">
+            {% for ico, name in [('fa-facebook-f','Facebook'),('fa-instagram','Instagram'),('fa-youtube','YouTube'),('fa-whatsapp','WhatsApp')] %}
+            <a href="#" style="width:40px;height:40px;border-radius:50%;background:var(--bg-card);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold);transition:background 0.2s;" onmouseover="this.style.background='var(--gold-dim)'" onmouseout="this.style.background='var(--bg-card)'" aria-label="{{ name }}">
+              <i class="fab {{ ico }}"></i>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:40px;">
+        <h2 style="font-family:var(--font-serif);font-size:1.7rem;color:var(--text-light);margin-bottom:8px;">{% if current_lang=='en' %}Send a Message{% else %}Envoyer un Message{% endif %}</h2>
+        <div class="gold-div" style="margin-bottom:28px;"></div>
+        <form method="POST" novalidate id="contactForm">
+          {{ form.hidden_tag() }}
+          {{ form.hp_field(style='display:none !important;', tabindex='-1', autocomplete='off') }}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label class="form-label">{{ form.first_name.label.text }} *</label>
+              {{ form.first_name(class='form-control', placeholder='Prénom') }}
+              {% for e in form.first_name.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ form.last_name.label.text }} *</label>
+              {{ form.last_name(class='form-control', placeholder='Nom') }}
+              {% for e in form.last_name.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+              <label class="form-label">{{ form.email.label.text }} *</label>
+              {{ form.email(class='form-control', placeholder='votre@email.com') }}
+              {% for e in form.email.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">{{ form.phone.label.text }}</label>
+              {{ form.phone(class='form-control', placeholder='+212 6 XX XX XX XX') }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.destination_interest.label.text }}</label>
+            {{ form.destination_interest(class='form-control') }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.subject.label.text }} *</label>
+            {{ form.subject(class='form-control') }}
+            {% for e in form.subject.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ form.message.label.text }} *</label>
+            {{ form.message(class='form-control', rows=5, placeholder='Décrivez votre projet de voyage, vos dates, le nombre de personnes…') }}
+            {% for e in form.message.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+          </div>
+          <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;">
+            <i class="fa fa-paper-plane"></i> {% if current_lang=='en' %}Send{% else %}Envoyer{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

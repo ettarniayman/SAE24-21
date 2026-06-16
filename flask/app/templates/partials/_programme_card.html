@@ -1,0 +1,48 @@
+{# Usage: {% include 'partials/_programme_card.html' with prog=prog %} #}
+<article class="card prog-card" role="article">
+  <a href="{{ url_for('programs.detail', slug=prog.slug) }}" aria-label="{{ prog.name_fr if current_lang=='fr' else prog.name_en or prog.name_fr }}">
+    <div class="prog-card__img">
+      {% if prog.image_main %}
+        <img src="{{ url_for('static', filename='images/uploads/' ~ prog.image_main) }}"
+             alt="{{ prog.name_fr }}" loading="lazy">
+      {% else %}
+        <img src="{{ url_for('static', filename='images/placeholder-prog.jpg') }}"
+             alt="{{ prog.name_fr }}" loading="lazy">
+      {% endif %}
+      {% if prog.theme %}
+        <span class="prog-card__theme">{{ prog.theme | title }}</span>
+      {% endif %}
+    </div>
+  </a>
+  <div class="prog-card__body">
+    <h3 class="prog-card__name">
+      <a href="{{ url_for('programs.detail', slug=prog.slug) }}" style="color:inherit;">
+        {% if current_lang == 'fr' %}{{ prog.name_fr }}{% else %}{{ prog.name_en or prog.name_fr }}{% endif %}
+      </a>
+    </h3>
+    <div class="prog-card__meta">
+      <span><i class="fa fa-calendar-days"></i> {{ prog.duration_days }} {% if current_lang=='fr' %}jours{% else %}days{% endif %}</span>
+      {% if prog.duration_nights %}
+        <span><i class="fa fa-moon"></i> {{ prog.duration_nights }} {% if current_lang=='fr' %}nuits{% else %}nights{% endif %}</span>
+      {% endif %}
+      <span><i class="fa fa-users"></i> {{ prog.group_min }}–{{ prog.group_max }} {% if current_lang=='fr' %}pers.{% else %}pax{% endif %}</span>
+    </div>
+    <p class="prog-card__desc">
+      {{ prog.description_fr[:140] ~ '…' if prog.description_fr and prog.description_fr|length > 140 else prog.description_fr or '' }}
+    </p>
+    <div class="prog-card__footer">
+      <div class="prog-card__price">
+        <span class="from">{% if current_lang=='fr' %}À partir de{% else %}From{% endif %}</span>
+        {% if prog.price_per_person_discounted %}
+          <strong>{{ prog.price_per_person_discounted }}€</strong>
+          <span class="old">{{ prog.price_per_person }}€</span>
+        {% else %}
+          <strong>{{ prog.price_per_person or '—' }}{% if prog.price_per_person %}€{% endif %}</strong>
+        {% endif %}
+      </div>
+      <a href="{{ url_for('programs.detail', slug=prog.slug) }}" class="btn btn-outline btn-sm">
+        {% if current_lang=='fr' %}Voir →{% else %}View →{% endif %}
+      </a>
+    </div>
+  </div>
+</article>

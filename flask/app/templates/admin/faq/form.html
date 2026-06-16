@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ title }} — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>{{ title }}</h1>
+  <a href="{{ url_for('admin.faq_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Retour</a>
+</div>
+<div style="max-width:700px;">
+  <div class="admin-box">
+    <div class="admin-box__body">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">{{ form.category_id.label(class='form-label') }}{{ form.category_id(class='form-control') }}</div>
+        <div class="form-group">{{ form.question_fr.label(class='form-label') }}{{ form.question_fr(class='form-control', rows=3) }}</div>
+        <div class="form-group">{{ form.answer_fr.label(class='form-label') }}{{ form.answer_fr(class='form-control', rows=6) }}</div>
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:20px;cursor:pointer;font-size:0.86rem;">
+          {{ form.is_active(style='accent-color:var(--gold);width:16px;height:16px;') }}
+          <span>{{ form.is_active.label.text }}</span>
+        </label>
+        {{ form.submit(class='btn btn-gold') }}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
