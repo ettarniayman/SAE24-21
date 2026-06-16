@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ dest.get_name(current_lang) }} — RT Voyage{% endblock %}
 {% block meta_desc %}{{ dest.get_short_desc(current_lang) or '' }}{% endblock %}
-{% block og_image %}{% if dest.image_main %}{{ url_for('static', filename='images/destinations/' ~ dest.image_main, _external=True) }}{% else %}{{ super() }}{% endif %}{% endblock %}
+{% block og_image %}{% if dest.image_main %}{% if dest.image_main.startswith('http') %}{{ dest.image_main }}{% else %}{{ url_for('static', filename='images/destinations/' ~ dest.image_main, _external=True) }}{% endif %}{% else %}{{ super() }}{% endif %}{% endblock %}
 
 {% block schema %}
 <script type="application/ld+json">
@@ -23,7 +23,11 @@
 {# ── HERO ── #}
 <div class="dest-hero">
   {% if dest.image_main %}
-    <img class="dest-hero__img" src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="{{ dest.get_name(current_lang) }}">
+    {% if dest.image_main.startswith('http') %}
+      <img class="dest-hero__img" src="{{ dest.image_main }}" alt="{{ dest.get_name(current_lang) }}">
+    {% else %}
+      <img class="dest-hero__img" src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="{{ dest.get_name(current_lang) }}">
+    {% endif %}
   {% else %}
     <div class="dest-hero__img" style="background:var(--bg-card2);"></div>
   {% endif %}
@@ -199,9 +203,14 @@
           <div class="card" style="padding:0;overflow:hidden;">
             <div style="display:flex;gap:0;">
               {% if hotel.image_main %}
-                <img src="{{ url_for('static', filename='images/uploads/' ~ hotel.image_main) }}"
-                     alt="{{ hotel.name }}" loading="lazy"
-                     style="width:110px;height:100%;object-fit:cover;flex-shrink:0;">
+                {% if hotel.image_main.startswith('http') %}
+                  <img src="{{ hotel.image_main }}" alt="{{ hotel.name }}" loading="lazy"
+                       style="width:110px;height:100%;object-fit:cover;flex-shrink:0;">
+                {% else %}
+                  <img src="{{ url_for('static', filename='images/uploads/' ~ hotel.image_main) }}"
+                       alt="{{ hotel.name }}" loading="lazy"
+                       style="width:110px;height:100%;object-fit:cover;flex-shrink:0;">
+                {% endif %}
               {% endif %}
               <div style="padding:18px;flex:1;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
@@ -344,9 +353,15 @@
         {% for r in related %}
         <a href="{{ url_for('destinations.detail', slug=r.slug) }}" style="display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-dark);text-decoration:none;">
           {% if r.image_thumb or r.image_main %}
-            <img src="{{ url_for('static', filename='images/destinations/' ~ (r.image_thumb or r.image_main)) }}"
-                 alt="{{ r.name_fr }}" loading="lazy"
-                 style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+            {% set rel_img = r.image_thumb or r.image_main %}
+            {% if rel_img.startswith('http') %}
+              <img src="{{ rel_img }}" alt="{{ r.name_fr }}" loading="lazy"
+                   style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+            {% else %}
+              <img src="{{ url_for('static', filename='images/destinations/' ~ rel_img) }}"
+                   alt="{{ r.name_fr }}" loading="lazy"
+                   style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
+            {% endif %}
           {% endif %}
           <div>
             <p style="font-size:0.86rem;color:var(--text-white);">{{ r.get_name(current_lang) }}</p>

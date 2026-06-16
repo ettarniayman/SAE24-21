@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+{% block title %}Boutique — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Boutique <span>({{ pagination.total }} produits)</span></h1>
+  <a href="{{ url_for('admin.shop_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouveau produit</a>
+</div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Image</th><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Affiliation</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td style="width:56px;">
+            {% if product.image_main %}
+              <img src="{{ product.image_main }}" style="width:48px;height:48px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-dark);">
+            {% else %}
+              <div style="width:48px;height:48px;background:var(--bg-card2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;"><i class="fa fa-box" style="color:var(--gold-dim);"></i></div>
+            {% endif %}
+          </td>
+          <td><p style="font-size:0.88rem;font-weight:600;color:var(--text-light);">{{ product.name_fr | truncate(45) }}</p><p style="font-size:0.72rem;color:var(--text-sub);font-family:monospace;">{{ product.slug }}</p></td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">{{ product.category.name_fr if product.category else '—' }}</td>
+          <td>
+            <p style="font-size:0.9rem;color:var(--gold);font-weight:700;">{{ product.price_discounted or product.price }} MAD</p>
+            {% if product.price_discounted %}<p style="font-size:0.72rem;text-decoration:line-through;color:var(--text-sub);">{{ product.price }} MAD</p>{% endif %}
+          </td>
+          <td style="font-size:0.84rem;">{{ 'Illimité' if product.stock == -1 else product.stock }}</td>
+          <td><span class="badge {{ 'badge-muted' if product.is_affiliate else 'badge-success' }}">{{ 'Affiliation' if product.is_affiliate else 'Direct' }}</span></td>
+          <td><span class="badge {{ 'badge-success' if product.is_active else 'badge-danger' }}">{{ 'Actif' if product.is_active else 'Inactif' }}</span></td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{{ url_for('admin.shop_edit', product_id=product.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-edit"></i></a>
+              <form action="{{ url_for('admin.shop_delete', product_id=product.id) }}" method="POST" onsubmit="return confirm('Supprimer ce produit ?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-sub);">Aucun produit</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

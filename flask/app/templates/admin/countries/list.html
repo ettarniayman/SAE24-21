@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% block title %}Pays — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Pays <span>({{ countries | length }})</span></h1>
+  <a href="{{ url_for('admin.country_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Ajouter</a>
+</div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Drapeau</th><th>Pays (FR)</th><th>Code</th><th>Continent</th><th>Capitale</th><th>Destinations</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for country in countries %}
+        <tr>
+          <td style="font-size:1.6rem;text-align:center;width:48px;">{{ country.flag_emoji or '🌍' }}</td>
+          <td style="font-weight:600;color:var(--text-light);">{{ country.name_fr }}</td>
+          <td style="font-family:monospace;color:var(--gold);">{{ country.code }}</td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">{{ country.continent or '—' }}</td>
+          <td style="font-size:0.82rem;color:var(--text-muted);">{{ country.capital or '—' }}</td>
+          <td style="font-size:0.82rem;">{{ country.destinations | length }}</td>
+          <td><span class="badge {{ 'badge-success' if country.is_active else 'badge-danger' }}">{{ 'Actif' if country.is_active else 'Inactif' }}</span></td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{{ url_for('admin.country_edit', country_id=country.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-edit"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-sub);">Aucun pays</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

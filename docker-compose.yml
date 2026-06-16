@@ -11,9 +11,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rtvoyage_secret_2026}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
-      - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
-      - ./database/views_triggers.sql:/docker-entrypoint-initdb.d/03_views_triggers.sql
     ports:
       - "5432:5432"
     networks:

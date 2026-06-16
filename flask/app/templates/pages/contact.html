@@ -45,7 +45,7 @@
         <div class="gold-div" style="margin-bottom:28px;"></div>
         <form method="POST" novalidate id="contactForm">
           {{ form.hidden_tag() }}
-          {{ form.hp_field(style='display:none !important;', tabindex='-1', autocomplete='off') }}
+          {{ form.honeypot(style='display:none !important;', tabindex='-1', autocomplete='off') }}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div class="form-group">
               <label class="form-label">{{ form.first_name.label.text }} *</label>

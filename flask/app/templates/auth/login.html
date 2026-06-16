@@ -29,8 +29,8 @@
           {% for e in form.password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
         </div>
         <label style="display:flex;align-items:center;gap:10px;margin-bottom:24px;cursor:pointer;font-size:0.84rem;color:var(--text-muted);">
-          {{ form.remember_me(style='accent-color:var(--gold);') }}
-          {{ form.remember_me.label.text }}
+          {{ form.remember(style='accent-color:var(--gold);') }}
+          {{ form.remember.label.text }}
         </label>
         <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;font-size:1rem;">
           {% if current_lang == 'en' %}Sign In{% else %}Se connecter{% endif %}

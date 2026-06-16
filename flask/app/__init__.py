@@ -57,6 +57,13 @@ def create_app(config_name=None):
     app.register_blueprint(api_bp, url_prefix="/api/v1")
     app.register_blueprint(admin_bp, url_prefix="/admin")
 
+    # Create tables if they don't exist (dev / first boot)
+    with app.app_context():
+        try:
+            db.create_all()
+        except Exception:
+            db.session.rollback()
+
     # Error handlers
     @app.errorhandler(404)
     def not_found(e):

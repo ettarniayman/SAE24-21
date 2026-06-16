@@ -48,6 +48,7 @@ def register():
                 email=form.email.data.lower(),
                 first_name=form.first_name.data,
                 last_name=form.last_name.data,
+                phone=form.phone.data or None,
                 role="client",
             )
             user.set_password(form.password.data)

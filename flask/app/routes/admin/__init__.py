@@ -26,7 +26,7 @@ from ...forms.admin_forms import (
     ActivityForm,
 )
 from ...utils.helpers import save_uploaded_file
-from python_slugify import slugify
+from slugify import slugify
 import os
 
 bp = Blueprint("admin", __name__)

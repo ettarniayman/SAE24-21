@@ -3,8 +3,11 @@
   <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" aria-label="{{ dest.get_name(current_lang) }}">
     <div class="dest-card__img">
       {% if dest.image_main %}
-        <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}"
-             alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+        {% if dest.image_main.startswith('http') %}
+          <img src="{{ dest.image_main }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+        {% else %}
+          <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+        {% endif %}
       {% else %}
         <img src="{{ url_for('static', filename='images/placeholder-dest.jpg') }}"
              alt="{{ dest.get_name(current_lang) }}" loading="lazy">

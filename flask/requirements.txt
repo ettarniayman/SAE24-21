@@ -20,3 +20,4 @@ Markdown==3.7
 python-slugify==8.0.4
 itsdangerous==2.2.0
 pytz==2024.2
+python-slugify==8.0.4

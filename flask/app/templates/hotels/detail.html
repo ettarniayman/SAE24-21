@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ hotel.name }} — RT Voyage{% endblock %}
 {% block og_title %}{{ hotel.name }}{% endblock %}
-{% block og_description %}{{ hotel.short_desc_fr | striptags | truncate(160) if hotel.short_desc_fr else '' }}{% endblock %}
+{% block og_description %}{{ hotel.description_fr | striptags | truncate(160) if hotel.description_fr else '' }}{% endblock %}
 {% block og_image %}{{ hotel.image_main or '' }}{% endblock %}
 
 {% block content %}
@@ -20,7 +20,7 @@
       </div>
       <div style="margin-left:auto;background:rgba(5,8,16,0.7);backdrop-filter:blur(12px);border:1px solid var(--gold-border);border-radius:var(--radius-sm);padding:20px 28px;text-align:center;">
         <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-sub);">À partir de</span>
-        <p style="font-family:var(--font-serif);font-size:2.2rem;color:var(--gold);font-weight:700;line-height:1.1;">{{ hotel.price_from or '—' }}</p>
+        <p style="font-family:var(--font-serif);font-size:2.2rem;color:var(--gold);font-weight:700;line-height:1.1;">{{ hotel.price_min or '—' }}</p>
         <span style="font-size:0.72rem;color:var(--text-sub);">MAD / nuit</span>
       </div>
     </div>
@@ -34,7 +34,7 @@
         <div class="card" style="padding:32px;margin-bottom:24px;">
           <h2 style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);margin-bottom:16px;">Description</h2>
           <div style="font-size:0.9rem;line-height:1.85;color:var(--text-muted);">
-            {{ (hotel.long_desc_fr if current_lang=='fr' else hotel.long_desc_en) | safe or (hotel.short_desc_fr if current_lang=='fr' else hotel.short_desc_en) or 'Description non disponible.' }}
+            {{ (hotel.description_fr if current_lang=='fr' else hotel.description_en) | safe or 'Description non disponible.' }}
           </div>
         </div>
 
@@ -93,7 +93,6 @@
               ('Type', hotel.hotel_type | title),
               ('Étoiles', '★' * (hotel.stars or 0) if hotel.stars else '—'),
               ('Destination', hotel.destination.name_fr if hotel.destination else '—'),
-              ('Alliance', hotel.alliance or '—') if hotel.alliance else None
             ] %}
             {% if val is not none %}
             <tr style="border-bottom:1px solid var(--border-dark);">
