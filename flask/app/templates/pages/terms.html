@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Conditions Générales de Vente — RT Voyage{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>CGV</span></nav>
+    <h1 class="page-hero__title">Conditions Générales de Vente</h1>
+  </div>
+</div>
+<section class="section">
+  <div class="container" style="max-width:760px;margin:0 auto;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;" id="cgvNav">
+      {% for anchor, label in [('article1','Réservation'),('article2','Paiement'),('article3','Annulation'),('article4','Responsabilités'),('article5','Réclamations')] %}
+      <a href="#{{ anchor }}" style="padding:6px 14px;background:var(--bg-card);border:1px solid var(--gold-border);border-radius:20px;font-size:0.78rem;color:var(--text-muted);text-decoration:none;transition:0.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--gold-border)';this.style.color='var(--text-muted)'">{{ label }}</a>
+      {% endfor %}
+    </div>
+    <div class="card" style="padding:48px;">
+      <div style="font-size:0.9rem;line-height:1.85;color:var(--text-muted);">
+        <h2 id="article1" style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:0 0 12px;">Article 1 — Réservation</h2>
+        <p>Toute réservation est définitive après réception d'un acompte de 30% du montant total et confirmation écrite de RT Voyage. La réservation implique l'acceptation sans réserve des présentes CGV.</p>
+
+        <h2 id="article2" style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Article 2 — Paiement</h2>
+        <p>Le solde doit être réglé au plus tard 30 jours avant le départ. En cas de réservation à moins de 30 jours du départ, le paiement intégral est exigé. Modes de paiement acceptés : virement bancaire, carte bancaire, espèces en agence.</p>
+
+        <h2 id="article3" style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Article 3 — Annulation et Remboursement</h2>
+        <p>En cas d'annulation par le client :</p>
+        <ul style="margin:12px 0 12px 20px;display:flex;flex-direction:column;gap:6px;">
+          <li>Plus de 60 jours avant le départ : remboursement de l'acompte moins 10% de frais administratifs</li>
+          <li>Entre 30 et 60 jours : retenue de 50% du montant total</li>
+          <li>Entre 15 et 30 jours : retenue de 75% du montant total</li>
+          <li>Moins de 15 jours : aucun remboursement</li>
+        </ul>
+
+        <h2 id="article4" style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Article 4 — Responsabilités</h2>
+        <p>RT Voyage est responsable du bon déroulement des prestations vendues. Sa responsabilité ne peut être engagée en cas de force majeure, de faits imputables au client, ou de faits imprévisibles ou inévitables d'un tiers étranger à la fourniture des services.</p>
+
+        <h2 id="article5" style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin:32px 0 12px;">Article 5 — Réclamations</h2>
+        <p>Toute réclamation doit être adressée par écrit à RT Voyage dans les 30 jours suivant le retour. À l'adresse : <a href="mailto:contact@rtvoyage.ma" style="color:var(--gold);">contact@rtvoyage.ma</a>.</p>
+
+        <p style="margin-top:40px;font-size:0.78rem;color:var(--text-sub);">Dernière mise à jour : {{ now.strftime('%d/%m/%Y') if now else 'Juin 2025' }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
