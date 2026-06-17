@@ -51,6 +51,9 @@ class Destination(db.Model):
 
     # Practical info
     average_budget_eur = db.Column(db.Integer)
+    budget_low = db.Column(db.Numeric(10, 2))
+    budget_high = db.Column(db.Numeric(10, 2))
+    currency_local = db.Column(db.String(30))
     difficulty_level = db.Column(db.String(20), default="easy")
     safety_level = db.Column(db.String(20), default="safe")
     visa_required = db.Column(db.Boolean, default=False)

@@ -3,29 +3,100 @@
 {% block content %}
 <div class="admin-header">
   <h1>Médiathèque</h1>
-  <label class="btn btn-gold btn-sm" style="cursor:pointer;">
-    <i class="fa fa-upload"></i> Uploader
-    <input type="file" id="uploadInput" multiple accept="image/*,video/*,.pdf" style="display:none;">
-  </label>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('urlModal').style.display='flex'">
+      <i class="fa fa-link"></i> Vidéo externe
+    </button>
+    <label class="btn btn-gold btn-sm" style="cursor:pointer;">
+      <i class="fa fa-upload"></i> Uploader fichier
+      <input type="file" id="uploadInput" multiple accept="image/*,video/mp4,video/webm,.pdf" style="display:none;">
+    </label>
+  </div>
+</div>
+
+{# Hidden CSRF for JS fetch #}
+<input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
+
+{# Upload options bar #}
+<div style="background:var(--bg-card);border:1px solid var(--gold-border);border-radius:var(--radius-sm);padding:16px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+  <div>
+    <label style="font-size:0.72rem;color:var(--text-sub);display:block;margin-bottom:4px;">Destination</label>
+    <select id="uploadDestId" class="form-control" style="min-width:180px;">
+      <option value="">— Aucune —</option>
+      {% for dest in destinations %}
+      <option value="{{ dest.id }}">{{ dest.name_fr }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label style="font-size:0.72rem;color:var(--text-sub);display:block;margin-bottom:4px;">Hôtel</label>
+    <select id="uploadHotelId" class="form-control" style="min-width:160px;">
+      <option value="">— Aucun —</option>
+      {% for hotel in hotels %}
+      <option value="{{ hotel.id }}">{{ hotel.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label style="font-size:0.72rem;color:var(--text-sub);display:block;margin-bottom:4px;">Catégorie</label>
+    <select id="uploadCategory" class="form-control">
+      <option value="gallery">Gallery</option>
+      <option value="drone">Drone</option>
+      <option value="immersive">Immersive</option>
+      <option value="ai_generated">AI Generated</option>
+      <option value="document">Document</option>
+      <option value="main">Main</option>
+    </select>
+  </div>
+  <p style="font-size:0.78rem;color:var(--text-muted);align-self:center;margin:0;">
+    Sélectionnez destination/catégorie, puis cliquez <strong>Uploader fichier</strong>.
+  </p>
 </div>
 
 <div id="uploadProgress" style="display:none;margin-bottom:16px;padding:12px 20px;background:var(--bg-card);border:1px solid var(--gold-border);border-radius:var(--radius-sm);">
-  <p style="font-size:0.84rem;color:var(--gold);">Upload en cours…</p>
+  <p style="font-size:0.84rem;color:var(--gold);margin:0;"><i class="fa fa-spinner fa-spin"></i> Upload en cours…</p>
 </div>
 
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;" id="mediaGrid">
   {% for media in medias %}
   <div class="card" style="position:relative;overflow:hidden;aspect-ratio:1;">
-    {% if media.file_type == 'image' or not media.file_type %}
+    {% if media.video_url %}
+      {% if media.youtube_id %}
+        <img src="https://img.youtube.com/vi/{{ media.youtube_id }}/mqdefault.jpg"
+             alt="{{ media.title_fr or 'YouTube' }}"
+             style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <i class="fa fa-play-circle" style="font-size:2.5rem;color:#fff;opacity:0.9;text-shadow:0 2px 8px rgba(0,0,0,0.8);"></i>
+        </div>
+      {% else %}
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-card2);">
+          <i class="fa fa-film" style="font-size:2.5rem;color:var(--gold-dim);"></i>
+        </div>
+      {% endif %}
+    {% elif media.file_type == 'image' or not media.file_type %}
       <img src="{{ media.file_path }}" alt="{{ media.title_fr or media.filename }}"
            style="width:100%;height:100%;object-fit:cover;" loading="lazy">
-    {% else %}
+    {% elif media.file_type == 'video' %}
       <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-card2);">
         <i class="fa fa-file-video" style="font-size:2.5rem;color:var(--gold-dim);"></i>
       </div>
+    {% else %}
+      <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-card2);">
+        <i class="fa fa-file" style="font-size:2.5rem;color:var(--gold-dim);"></i>
+      </div>
     {% endif %}
-    <div style="position:absolute;inset:0;background:rgba(5,8,16,0.7);opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:0.2s;" class="media-hover">
-      <p style="font-size:0.68rem;color:var(--text-muted);text-align:center;padding:0 8px;word-break:break-all;">{{ media.filename }}</p>
+
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:rgba(5,8,16,0.7);">
+      <span style="font-size:0.58rem;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;">{{ media.media_category or 'gallery' }}</span>
+    </div>
+
+    <div style="position:absolute;inset:0;background:rgba(5,8,16,0.75);opacity:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:0.2s;" class="media-hover">
+      <p style="font-size:0.62rem;color:var(--text-muted);text-align:center;padding:0 8px;word-break:break-all;max-height:60px;overflow:hidden;">
+        {{ media.filename or media.video_url }}
+      </p>
+      {% if media.file_size_kb %}
+        <p style="font-size:0.62rem;color:var(--text-sub);margin:0;">{{ media.file_size_kb }} Ko</p>
+      {% endif %}
       <form action="{{ url_for('admin.media_delete', media_id=media.id) }}" method="POST" onsubmit="return confirm('Supprimer ce média ?');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
@@ -33,11 +104,54 @@
     </div>
   </div>
   {% else %}
-  <p style="color:var(--text-sub);">Aucun média.</p>
+  <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">Aucun média.</p>
   {% endfor %}
 </div>
 
 {% include 'partials/_pagination.html' %}
+
+{# ── Modal : vidéo externe ── #}
+<div id="urlModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:rgba(5,8,16,0.88);">
+  <div style="background:var(--bg-card);border:1px solid var(--gold-border);border-radius:var(--radius-md);padding:32px;width:100%;max-width:480px;position:relative;">
+    <button onclick="document.getElementById('urlModal').style.display='none'"
+            style="position:absolute;top:12px;right:16px;background:none;border:none;color:var(--text-sub);font-size:1.3rem;cursor:pointer;">&#x2715;</button>
+    <h3 style="font-family:var(--font-serif);color:var(--gold);margin-bottom:20px;">Ajouter une vidéo externe</h3>
+    <form action="{{ url_for('admin.media_add_url') }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);display:block;margin-bottom:6px;">URL YouTube / Vimeo *</label>
+        <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." required>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);display:block;margin-bottom:6px;">Titre (FR)</label>
+        <input type="text" name="title_fr" class="form-control" placeholder="Ex : Survol de Marrakech en drone">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:0.8rem;color:var(--text-muted);display:block;margin-bottom:6px;">Destination</label>
+          <select name="destination_id" class="form-control">
+            <option value="">— Aucune —</option>
+            {% for dest in destinations %}
+            <option value="{{ dest.id }}">{{ dest.name_fr }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.8rem;color:var(--text-muted);display:block;margin-bottom:6px;">Catégorie</label>
+          <select name="media_category" class="form-control">
+            <option value="gallery">Gallery</option>
+            <option value="drone" selected>Drone</option>
+            <option value="immersive">Immersive</option>
+            <option value="ai_generated">AI Generated</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width:100%;">
+        <i class="fa fa-plus"></i> Ajouter la vidéo
+      </button>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -49,13 +163,22 @@ document.querySelectorAll('.card').forEach(card => {
     card.addEventListener('mouseleave', () => hover.style.opacity = '0');
   }
 });
+
 document.getElementById('uploadInput').addEventListener('change', async (e) => {
   const files = e.target.files;
+  if (!files.length) return;
   document.getElementById('uploadProgress').style.display = 'block';
+  const csrf = document.getElementById('csrfToken').value;
+  const destId = document.getElementById('uploadDestId').value;
+  const hotelId = document.getElementById('uploadHotelId').value;
+  const category = document.getElementById('uploadCategory').value;
   for (const file of files) {
     const fd = new FormData();
     fd.append('file', file);
-    fd.append('csrf_token', document.querySelector('[name=csrf_token]')?.value || '');
+    fd.append('csrf_token', csrf);
+    if (destId) fd.append('destination_id', destId);
+    if (hotelId) fd.append('hotel_id', hotelId);
+    fd.append('media_category', category);
     await fetch('{{ url_for("admin.media_upload") }}', { method: 'POST', body: fd });
   }
   location.reload();

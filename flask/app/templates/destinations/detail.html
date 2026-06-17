@@ -141,19 +141,89 @@
       </section>
       {% endif %}
 
-      {# Galerie médias #}
-      {% if medias %}
+      {# Galerie médias + vidéos #}
+      {% set active_medias = medias | selectattr('is_active') | list if medias else [] %}
+      {% if active_medias %}
       <section style="margin-bottom:48px;">
-        <span class="s-tag">{% if current_lang=='fr' %}Galerie photos{% else %}Photo gallery{% endif %}</span>
-        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
-          {% if current_lang=='fr' %}<em style="color:var(--gold)">Photos</em>{% else %}<em style="color:var(--gold)">Photos</em>{% endif %}
+        <span class="s-tag">{% if current_lang=='fr' %}Galerie{% else %}Gallery{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 16px;">
+          {% if current_lang=='fr' %}<em style="color:var(--gold)">Photos & Vidéos</em>{% else %}<em style="color:var(--gold)">Photos & Videos</em>{% endif %}
         </h2>
-        <div class="gallery-grid" id="galleryGrid">
-          {% for media in medias %}
-          <div class="gallery-item" data-src="{{ url_for('static', filename='images/uploads/' ~ media.filename) }}" onclick="openLightbox(this)">
-            <img src="{{ url_for('static', filename='images/uploads/' ~ media.filename) }}"
-                 alt="{{ media.alt_fr or media.title_fr or dest.get_name(current_lang) }}" loading="lazy">
-            <div class="gallery-item__overlay"><i class="fa fa-expand"></i></div>
+
+        {# BUG 4 — Barre de filtres par catégorie #}
+        {% set cats = active_medias | map(attribute='media_category') | unique | reject('none') | list %}
+        {% if cats | length > 1 %}
+        <div id="galleryFilter" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+          <button class="btn btn-gold btn-sm gallery-filter-btn active" data-filter="all">
+            {% if current_lang=='fr' %}Tout{% else %}All{% endif %}
+            <span style="opacity:0.65;margin-left:4px;">({{ active_medias | length }})</span>
+          </button>
+          {% for cat in cats %}
+          {% set count = active_medias | selectattr('media_category', 'equalto', cat) | list | length %}
+          <button class="btn btn-ghost btn-sm gallery-filter-btn" data-filter="{{ cat }}">
+            {% if cat == 'gallery' %}{% if current_lang=='fr' %}Galerie{% else %}Gallery{% endif %}
+            {% elif cat == 'drone' %}Drone
+            {% elif cat == 'immersive' %}Immersive 360°
+            {% elif cat == 'ai_generated' %}{% if current_lang=='fr' %}IA Généré{% else %}AI Generated{% endif %}
+            {% elif cat == 'document' %}{% if current_lang=='fr' %}Documents{% else %}Documents{% endif %}
+            {% elif cat == 'main' %}Main
+            {% else %}{{ cat | title }}{% endif %}
+            <span style="opacity:0.65;margin-left:4px;">({{ count }})</span>
+          </button>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {# BUG 3 — Items <a class="gallery-item"> que gallery.js attend #}
+        <div class="gallery-grid" id="destGallery">
+          {% for media in active_medias %}
+          <div class="gallery-item-wrapper" data-category="{{ media.media_category or 'gallery' }}">
+
+            {% if media.video_url %}
+              {# Vidéo externe YouTube/Vimeo — s'ouvre dans le lightbox #}
+              <a class="gallery-item"
+                 href="{{ media.video_url }}"
+                 data-caption="{{ media.title_fr or dest.get_name(current_lang) }}">
+                {% if media.youtube_id %}
+                  <img src="https://img.youtube.com/vi/{{ media.youtube_id }}/mqdefault.jpg"
+                       alt="{{ media.title_fr or dest.get_name(current_lang) }}" loading="lazy">
+                {% else %}
+                  <div style="width:100%;height:100%;min-height:160px;display:flex;align-items:center;justify-content:center;background:var(--bg-card2);">
+                    <i class="fa fa-play-circle" style="font-size:3rem;color:var(--gold);"></i>
+                  </div>
+                {% endif %}
+                <div class="gallery-item__overlay">
+                  <i class="fa fa-play" style="font-size:1.4rem;"></i>
+                </div>
+              </a>
+
+            {% elif media.file_type == 'video' and media.filename %}
+              {# Vidéo uploadée — lightbox natif <video> #}
+              <a class="gallery-item"
+                 href="{{ media.file_path }}"
+                 data-caption="{{ media.title_fr or media.alt_fr or '' }}">
+                <div style="width:100%;height:100%;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-card2);gap:8px;">
+                  <i class="fa fa-film" style="font-size:2.2rem;color:var(--gold);"></i>
+                  {% if media.duration_seconds %}
+                  <span style="font-size:0.7rem;color:var(--text-sub);">
+                    {{ '%d:%02d' | format(media.duration_seconds // 60, media.duration_seconds % 60) }}
+                  </span>
+                  {% endif %}
+                </div>
+                <div class="gallery-item__overlay"><i class="fa fa-play"></i></div>
+              </a>
+
+            {% elif media.filename %}
+              {# Image uploadée #}
+              <a class="gallery-item"
+                 href="{{ media.file_path }}"
+                 data-caption="{{ media.title_fr or media.alt_fr or '' }}">
+                <img src="{{ media.file_path }}"
+                     alt="{{ media.alt_fr or media.title_fr or dest.get_name(current_lang) }}" loading="lazy">
+                <div class="gallery-item__overlay"><i class="fa fa-expand"></i></div>
+              </a>
+            {% endif %}
+
           </div>
           {% endfor %}
         </div>
@@ -375,14 +445,6 @@
   </div>
 </div>
 
-{# Lightbox #}
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Galerie photo">
-  <button class="lightbox__close" onclick="closeLightbox()" aria-label="Fermer"><i class="fa fa-times"></i></button>
-  <button class="lightbox__prev" onclick="lightboxPrev()" aria-label="Précédent"><i class="fa fa-chevron-left"></i></button>
-  <img class="lightbox__img" id="lightboxImg" src="" alt="">
-  <button class="lightbox__next" onclick="lightboxNext()" aria-label="Suivant"><i class="fa fa-chevron-right"></i></button>
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
@@ -405,5 +467,27 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
   });
 });
+
+// BUG 4 — Gallery category filter
+(function () {
+  const filterBar = document.getElementById('galleryFilter');
+  if (!filterBar) return;
+  filterBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.gallery-filter-btn');
+    if (!btn) return;
+    const filter = btn.dataset.filter;
+    filterBar.querySelectorAll('.gallery-filter-btn').forEach(b => {
+      b.classList.remove('active', 'btn-gold');
+      b.classList.add('btn-ghost');
+    });
+    btn.classList.add('active', 'btn-gold');
+    btn.classList.remove('btn-ghost');
+    document.querySelectorAll('#destGallery .gallery-item-wrapper').forEach(item => {
+      item.style.display = (filter === 'all' || item.dataset.category === filter) ? '' : 'none';
+    });
+    // Re-wire lightbox after filter change so only visible items are in the list
+    if (window.RTGallery) window.RTGallery.wire(document.getElementById('destGallery'));
+  });
+})();
 </script>
 {% endblock %}

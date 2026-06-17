@@ -4,7 +4,7 @@
 
 -- ─── Additional search index ──────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_dest_view_count ON destinations(view_count DESC);
-CREATE INDEX IF NOT EXISTS idx_dest_price      ON destinations(price_from);
+CREATE INDEX IF NOT EXISTS idx_dest_budget     ON destinations(average_budget_eur);
 CREATE INDEX IF NOT EXISTS idx_prog_price      ON travel_programs(price_per_person);
 CREATE INDEX IF NOT EXISTS idx_hotel_stars     ON hotels(stars DESC);
 CREATE INDEX IF NOT EXISTS idx_blog_published  ON blog_posts(published_at DESC) WHERE is_published = TRUE;
