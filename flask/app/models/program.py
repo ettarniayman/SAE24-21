@@ -5,6 +5,7 @@ program_destinations = db.Table(
     "program_destinations",
     db.Column("program_id", db.Integer, db.ForeignKey("travel_programs.id"), primary_key=True),
     db.Column("destination_id", db.Integer, db.ForeignKey("destinations.id"), primary_key=True),
+    db.Column("sort_order", db.Integer, default=0),
 )
 
 

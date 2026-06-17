@@ -6,7 +6,7 @@
         {% if dest.image_main.startswith('http') %}
           <img src="{{ dest.image_main }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
         {% else %}
-          <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+        <img src="{{ dest.image_main }}">
         {% endif %}
       {% else %}
         <img src="{{ url_for('static', filename='images/placeholder-dest.jpg') }}"

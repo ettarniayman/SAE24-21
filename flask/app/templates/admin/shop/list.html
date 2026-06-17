@@ -3,7 +3,10 @@
 {% block content %}
 <div class="admin-header">
   <h1>Boutique <span>({{ pagination.total }} produits)</span></h1>
-  <a href="{{ url_for('admin.shop_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouveau produit</a>
+  <div style="display:flex;gap:10px;">
+    <a href="{{ url_for('admin.shop_category_list') }}" class="btn btn-outline btn-sm"><i class="fa fa-tags"></i> Catégories</a>
+    <a href="{{ url_for('admin.shop_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouveau produit</a>
+  </div>
 </div>
 <div class="admin-box">
   <div class="admin-box__body" style="padding:0;overflow-x:auto;">

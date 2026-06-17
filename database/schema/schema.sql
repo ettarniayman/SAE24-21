@@ -5,34 +5,22 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
--- ─── Enum types ───────────────────────────────────────────────────────────────
-CREATE TYPE user_role      AS ENUM ('super_admin','admin','agent','client');
-CREATE TYPE dest_type      AS ENUM ('city','nature','desert','mountain','beach','historical');
-CREATE TYPE hotel_type     AS ENUM ('hotel','riad','villa','resort','hostel','apartment');
-CREATE TYPE activity_type  AS ENUM ('monument','stadium','museum','medina','desert','mountain','hike','beach','surf','nautical','family','sport','cultural','luxury','excursion');
-CREATE TYPE program_theme  AS ENUM ('culture','adventure','nature','luxury','sport','gastronomy','family','football');
-CREATE TYPE booking_status AS ENUM ('pending','confirmed','cancelled','completed');
-CREATE TYPE payment_status AS ENUM ('pending','paid','refunded','failed');
-CREATE TYPE promo_type     AS ENUM ('general','flight','hotel','package','activity');
-CREATE TYPE media_category AS ENUM ('main','gallery','drone','immersive','ai_generated','document');
-CREATE TYPE rss_category   AS ENUM ('news','destination','promotion','article','partner');
-
 -- ─── Countries ────────────────────────────────────────────────────────────────
 CREATE TABLE countries (
   id            SERIAL PRIMARY KEY,
   name_fr       VARCHAR(100) NOT NULL,
   name_en       VARCHAR(100) NOT NULL,
-  code          CHAR(2) NOT NULL UNIQUE,
+  code          VARCHAR(3) NOT NULL UNIQUE,
   continent     VARCHAR(50),
   capital       VARCHAR(100),
   currency      VARCHAR(60),
-  currency_code CHAR(3),
+  currency_code VARCHAR(10),
   language      VARCHAR(100),
   flag_emoji    VARCHAR(10),
-  description   TEXT,
-  image         VARCHAR(500),
-  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  description_fr TEXT,
+  description_en TEXT,
+  image         VARCHAR(255),
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE
 );
 CREATE INDEX idx_countries_code ON countries(code);
 
@@ -40,15 +28,15 @@ CREATE INDEX idx_countries_code ON countries(code);
 CREATE TABLE users (
   id             SERIAL PRIMARY KEY,
   username       VARCHAR(80) NOT NULL UNIQUE,
-  email          VARCHAR(120) NOT NULL UNIQUE,
-  password_hash  VARCHAR(256) NOT NULL,
-  first_name     VARCHAR(80),
-  last_name      VARCHAR(80),
-  phone          VARCHAR(30),
-  role           user_role NOT NULL DEFAULT 'client',
+  email          VARCHAR(255) NOT NULL UNIQUE,
+  password_hash  VARCHAR(255) NOT NULL,
+  first_name     VARCHAR(100),
+  last_name      VARCHAR(100),
+  phone          VARCHAR(20),
+  role           VARCHAR(20) NOT NULL DEFAULT 'client',
   is_active      BOOLEAN NOT NULL DEFAULT TRUE,
-  avatar         VARCHAR(500),
-  preferred_lang CHAR(2) DEFAULT 'fr',
+  avatar         VARCHAR(255),
+  preferred_lang VARCHAR(5) DEFAULT 'fr',
   created_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   last_login     TIMESTAMP WITH TIME ZONE
 );
@@ -58,12 +46,12 @@ CREATE INDEX idx_users_role  ON users(role);
 -- ─── Destinations ─────────────────────────────────────────────────────────────
 CREATE TABLE destinations (
   id                SERIAL PRIMARY KEY,
-  slug              VARCHAR(150) NOT NULL UNIQUE,
-  name_fr           VARCHAR(150) NOT NULL,
-  name_en           VARCHAR(150),
+  slug              VARCHAR(120) NOT NULL UNIQUE,
+  name_fr           VARCHAR(120) NOT NULL,
+  name_en           VARCHAR(120) NOT NULL,
   region            VARCHAR(100),
-  short_desc_fr     TEXT,
-  short_desc_en     TEXT,
+  short_desc_fr     VARCHAR(500),
+  short_desc_en     VARCHAR(500),
   long_desc_fr      TEXT,
   long_desc_en      TEXT,
   history_fr        TEXT,
@@ -72,18 +60,18 @@ CREATE TABLE destinations (
   culture_en        TEXT,
   gastronomy_fr     TEXT,
   gastronomy_en     TEXT,
-  country_id        INTEGER REFERENCES countries(id) ON DELETE SET NULL,
-  destination_type  dest_type DEFAULT 'city',
+  country_id        INTEGER NOT NULL REFERENCES countries(id) ON DELETE SET NULL,
+  destination_type  VARCHAR(30) DEFAULT 'city',
   latitude          NUMERIC(10,7),
   longitude         NUMERIC(10,7),
   timezone_name     VARCHAR(50),
   altitude_m        INTEGER,
-  image_main        VARCHAR(500),
-  image_thumb       VARCHAR(500),
+  image_main        VARCHAR(255),
+  image_thumb       VARCHAR(255),
   video_url         VARCHAR(500),
   video_drone_url   VARCHAR(500),
-  youtube_id        VARCHAR(20),
-  vimeo_id          VARCHAR(20),
+  youtube_id        VARCHAR(50),
+  vimeo_id          VARCHAR(50),
   street_view_lat   NUMERIC(10,7),
   street_view_lng   NUMERIC(10,7),
   climate_fr        TEXT,
@@ -122,22 +110,36 @@ CREATE TABLE activity_categories (
   slug     VARCHAR(80) NOT NULL UNIQUE,
   name_fr  VARCHAR(100) NOT NULL,
   name_en  VARCHAR(100),
-  icon     VARCHAR(80)
+  icon     VARCHAR(80),
+  color    VARCHAR(20)
 );
 
 CREATE TABLE activities (
   id            SERIAL PRIMARY KEY,
   slug          VARCHAR(150) NOT NULL UNIQUE,
   name_fr       VARCHAR(150) NOT NULL,
-  name_en       VARCHAR(150),
+  name_en       VARCHAR(150) NOT NULL,
   description_fr TEXT,
   description_en TEXT,
   category_id   INTEGER REFERENCES activity_categories(id),
-  activity_type activity_type,
+  duration_hours NUMERIC(5,1),
+  difficulty    VARCHAR(20) DEFAULT 'easy',
+  min_age       INTEGER,
+  max_participants INTEGER,
+  price_per_person NUMERIC(10,2),
+  currency      VARCHAR(5) DEFAULT 'EUR',
   image         VARCHAR(500),
-  duration_h    NUMERIC(4,1),
-  price_from    NUMERIC(10,2),
-  is_active     BOOLEAN NOT NULL DEFAULT TRUE
+  video_url     VARCHAR(500),
+  location_name VARCHAR(150),
+  latitude      NUMERIC(10,7),
+  longitude     NUMERIC(10,7),
+  includes_fr   TEXT,
+  includes_en   TEXT,
+  excludes_fr   TEXT,
+  excludes_en   TEXT,
+  is_featured   BOOLEAN DEFAULT FALSE,
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  activity_type VARCHAR(30)
 );
 
 CREATE TABLE destination_activities (
@@ -147,23 +149,32 @@ CREATE TABLE destination_activities (
   PRIMARY KEY (destination_id, activity_id)
 );
 
+CREATE TABLE destination_themes (
+  destination_id INTEGER NOT NULL REFERENCES destinations(id) ON DELETE CASCADE,
+  theme          VARCHAR(50) NOT NULL,
+  PRIMARY KEY (destination_id, theme)
+);
+
 -- ─── Hotels ───────────────────────────────────────────────────────────────────
 CREATE TABLE hotels (
   id                SERIAL PRIMARY KEY,
   slug              VARCHAR(150) NOT NULL UNIQUE,
   name              VARCHAR(150) NOT NULL,
-  hotel_type        hotel_type DEFAULT 'hotel',
+  hotel_type        VARCHAR(30) DEFAULT 'hotel',
   stars             SMALLINT CHECK (stars BETWEEN 1 AND 5),
   destination_id    INTEGER REFERENCES destinations(id) ON DELETE SET NULL,
   address           VARCHAR(300),
   latitude          NUMERIC(10,7),
   longitude         NUMERIC(10,7),
-  short_desc_fr     TEXT,
-  short_desc_en     TEXT,
-  long_desc_fr      TEXT,
-  long_desc_en      TEXT,
+  phone             VARCHAR(30),
+  email             VARCHAR(150),
+  website           VARCHAR(255),
+  description_fr    TEXT,
+  description_en    TEXT,
   image_main        VARCHAR(500),
   amenities         TEXT,
+  check_in_time     VARCHAR(10),
+  check_out_time    VARCHAR(10),
   has_pool          BOOLEAN DEFAULT FALSE,
   has_spa           BOOLEAN DEFAULT FALSE,
   has_restaurant    BOOLEAN DEFAULT FALSE,
@@ -172,7 +183,11 @@ CREATE TABLE hotels (
   has_gym           BOOLEAN DEFAULT FALSE,
   has_bar           BOOLEAN DEFAULT FALSE,
   has_beach_access  BOOLEAN DEFAULT FALSE,
-  price_from        NUMERIC(10,2),
+  price_min         NUMERIC(10,2),
+  price_max         NUMERIC(10,2),
+  currency          VARCHAR(5) DEFAULT 'EUR',
+  rating            NUMERIC(3,1),
+  review_count      INTEGER DEFAULT 0,
   booking_url       VARCHAR(500),
   is_partner        BOOLEAN DEFAULT FALSE,
   is_featured       BOOLEAN DEFAULT FALSE,
@@ -188,27 +203,32 @@ CREATE TABLE travel_programs (
   slug            VARCHAR(150) NOT NULL UNIQUE,
   name_fr         VARCHAR(200) NOT NULL,
   name_en         VARCHAR(200),
-  short_desc_fr   TEXT,
-  short_desc_en   TEXT,
-  long_desc_fr    TEXT,
-  long_desc_en    TEXT,
+  tagline_fr      VARCHAR(300),
+  tagline_en      VARCHAR(300),
+  description_fr  TEXT,
+  description_en  TEXT,
   image_main      VARCHAR(500),
-  theme           program_theme DEFAULT 'culture',
+  theme           VARCHAR(50) DEFAULT 'culture',
   duration_days   SMALLINT,
   duration_nights SMALLINT,
   group_min       SMALLINT DEFAULT 1,
   group_max       SMALLINT DEFAULT 20,
-  price_per_person     NUMERIC(10,2),
-  price_discounted     NUMERIC(10,2),
+  price_per_person             NUMERIC(10,2),
+  price_per_person_discounted  NUMERIC(10,2),
+  currency        VARCHAR(5) DEFAULT 'EUR',
   departure_city  VARCHAR(100),
+  departure_country_code VARCHAR(5),
   includes_fr     TEXT,
   includes_en     TEXT,
   excludes_fr     TEXT,
   excludes_en     TEXT,
   meta_title      VARCHAR(200),
   meta_description VARCHAR(320),
+  difficulty      VARCHAR(20) DEFAULT 'easy',
   is_featured     BOOLEAN DEFAULT FALSE,
   is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+  view_count      INTEGER NOT NULL DEFAULT 0,
+  booking_count   INTEGER NOT NULL DEFAULT 0,
   created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 CREATE INDEX idx_prog_slug  ON travel_programs(slug);
@@ -227,6 +247,8 @@ CREATE TABLE program_days (
   day_number     SMALLINT NOT NULL,
   title_fr       VARCHAR(200),
   title_en       VARCHAR(200),
+  description_fr TEXT,
+  description_en TEXT,
   morning_fr     TEXT,
   morning_en     TEXT,
   afternoon_fr   TEXT,
@@ -234,7 +256,9 @@ CREATE TABLE program_days (
   evening_fr     TEXT,
   evening_en     TEXT,
   accommodation  VARCHAR(200),
-  meals_included VARCHAR(3),
+  meals_included VARCHAR(20),
+  image          VARCHAR(500),
+  destination_id INTEGER REFERENCES destinations(id) ON DELETE SET NULL,
   UNIQUE (program_id, day_number)
 );
 
@@ -243,12 +267,16 @@ CREATE TABLE airlines (
   id                SERIAL PRIMARY KEY,
   slug              VARCHAR(100) NOT NULL UNIQUE,
   name              VARCHAR(150) NOT NULL,
-  iata_code         CHAR(2) NOT NULL UNIQUE,
+  iata_code         VARCHAR(5) UNIQUE,
+  country_code      VARCHAR(5),
   logo              VARCHAR(500),
   website           VARCHAR(300),
+  description_fr    TEXT,
+  description_en    TEXT,
   alliance          VARCHAR(80),
-  baggage_cabin_kg  NUMERIC(4,1),
-  baggage_hold_kg   NUMERIC(4,1),
+  baggage_cabin_kg  INTEGER,
+  baggage_hold_kg   INTEGER,
+  baggage_policy_fr TEXT,
   has_business_class BOOLEAN DEFAULT FALSE,
   has_first_class   BOOLEAN DEFAULT FALSE,
   is_partner        BOOLEAN DEFAULT FALSE,
@@ -258,23 +286,33 @@ CREATE TABLE airlines (
 CREATE TABLE flight_promotions (
   id           SERIAL PRIMARY KEY,
   airline_id   INTEGER NOT NULL REFERENCES airlines(id) ON DELETE CASCADE,
-  origin       CHAR(3) NOT NULL,
-  destination  CHAR(3) NOT NULL,
-  price_from   NUMERIC(10,2) NOT NULL,
-  currency     CHAR(3) DEFAULT 'MAD',
+  title_fr     VARCHAR(200) NOT NULL,
+  title_en     VARCHAR(200) NOT NULL,
+  description_fr TEXT,
+  origin       VARCHAR(100),
+  destination  VARCHAR(100),
+  origin_iata  VARCHAR(5),
+  destination_iata VARCHAR(5),
+  price_from   NUMERIC(10,2),
+  currency     VARCHAR(5) DEFAULT 'EUR',
   valid_from   DATE,
   valid_until  DATE,
   booking_url  VARCHAR(500),
-  is_active    BOOLEAN NOT NULL DEFAULT TRUE
+  image        VARCHAR(500),
+  is_active    BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ─── Blog ─────────────────────────────────────────────────────────────────────
 CREATE TABLE blog_categories (
-  id       SERIAL PRIMARY KEY,
-  slug     VARCHAR(80) NOT NULL UNIQUE,
-  name_fr  VARCHAR(100) NOT NULL,
-  name_en  VARCHAR(100),
-  icon     VARCHAR(80)
+  id             SERIAL PRIMARY KEY,
+  slug           VARCHAR(80) NOT NULL UNIQUE,
+  name_fr        VARCHAR(100) NOT NULL,
+  name_en        VARCHAR(100) NOT NULL,
+  description_fr TEXT,
+  color          VARCHAR(20),
+  icon           VARCHAR(80),
+  is_active      BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE blog_tags (
@@ -292,11 +330,12 @@ CREATE TABLE blog_posts (
   excerpt_en      TEXT,
   content_fr      TEXT,
   content_en      TEXT,
-  image           VARCHAR(500),
+  image_main      VARCHAR(255),
+  image_alt_fr    VARCHAR(200),
   category_id     INTEGER REFERENCES blog_categories(id) ON DELETE SET NULL,
   author_id       INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  meta_title      VARCHAR(200),
-  meta_description VARCHAR(320),
+  meta_title_fr   VARCHAR(200),
+  meta_desc_fr    VARCHAR(300),
   is_published    BOOLEAN NOT NULL DEFAULT FALSE,
   is_featured     BOOLEAN NOT NULL DEFAULT FALSE,
   view_count      INTEGER NOT NULL DEFAULT 0,
@@ -317,10 +356,13 @@ CREATE TABLE post_tags (
 CREATE TABLE testimonials (
   id              SERIAL PRIMARY KEY,
   destination_id  INTEGER REFERENCES destinations(id) ON DELETE SET NULL,
+  program_id      INTEGER REFERENCES travel_programs(id) ON DELETE SET NULL,
+  user_id         INTEGER REFERENCES users(id) ON DELETE SET NULL,
   client_name     VARCHAR(120) NOT NULL,
   client_country  VARCHAR(80),
   client_photo    VARCHAR(500),
   rating          SMALLINT NOT NULL DEFAULT 5 CHECK (rating BETWEEN 1 AND 5),
+  title           VARCHAR(200),
   comment         TEXT NOT NULL,
   travel_date     DATE,
   is_approved     BOOLEAN NOT NULL DEFAULT FALSE,
@@ -334,12 +376,13 @@ CREATE TABLE contact_messages (
   id                   SERIAL PRIMARY KEY,
   first_name           VARCHAR(80) NOT NULL,
   last_name            VARCHAR(80) NOT NULL,
-  email                VARCHAR(120) NOT NULL,
+  email                VARCHAR(200) NOT NULL,
   phone                VARCHAR(30),
-  destination_interest VARCHAR(120),
-  subject              VARCHAR(80) NOT NULL,
+  destination_interest VARCHAR(150),
+  subject              VARCHAR(200) NOT NULL,
   message              TEXT NOT NULL,
-  ip_address           VARCHAR(45),
+  lang                 VARCHAR(5) DEFAULT 'fr',
+  ip_address           VARCHAR(50),
   is_read              BOOLEAN NOT NULL DEFAULT FALSE,
   is_replied           BOOLEAN NOT NULL DEFAULT FALSE,
   created_at           TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -349,14 +392,15 @@ CREATE INDEX idx_contact_read ON contact_messages(is_read) WHERE is_read = FALSE
 -- ─── Newsletter ───────────────────────────────────────────────────────────────
 CREATE TABLE newsletter_subscribers (
   id                  SERIAL PRIMARY KEY,
-  email               VARCHAR(120) NOT NULL UNIQUE,
+  email               VARCHAR(200) NOT NULL UNIQUE,
   first_name          VARCHAR(80),
-  lang                CHAR(2) DEFAULT 'fr',
-  confirmation_token  VARCHAR(64),
+  lang                VARCHAR(5) DEFAULT 'fr',
+  is_active           BOOLEAN DEFAULT TRUE,
+  confirmation_token  VARCHAR(100) UNIQUE,
   is_confirmed        BOOLEAN NOT NULL DEFAULT FALSE,
-  unsubscribe_token   VARCHAR(64) NOT NULL,
+  unsubscribe_token   VARCHAR(100) UNIQUE,
   subscribed_at       TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  confirmed_at        TIMESTAMP WITH TIME ZONE
+  unsubscribed_at     TIMESTAMP WITH TIME ZONE
 );
 CREATE INDEX idx_newsletter_email ON newsletter_subscribers(email);
 
@@ -366,7 +410,8 @@ CREATE TABLE faq_categories (
   slug     VARCHAR(80) NOT NULL UNIQUE,
   name_fr  VARCHAR(120) NOT NULL,
   name_en  VARCHAR(120),
-  sort_order SMALLINT DEFAULT 0
+  icon     VARCHAR(50),
+  "order"  SMALLINT DEFAULT 0
 );
 
 CREATE TABLE faq_items (
@@ -376,8 +421,9 @@ CREATE TABLE faq_items (
   question_en  TEXT,
   answer_fr    TEXT NOT NULL,
   answer_en    TEXT,
-  sort_order   SMALLINT DEFAULT 0,
-  is_active    BOOLEAN NOT NULL DEFAULT TRUE
+  "order"      SMALLINT DEFAULT 0,
+  is_active    BOOLEAN NOT NULL DEFAULT TRUE,
+  view_count   INTEGER DEFAULT 0
 );
 
 -- ─── Promotions ───────────────────────────────────────────────────────────────
@@ -388,17 +434,18 @@ CREATE TABLE promotions (
   title_en        VARCHAR(200),
   description_fr  TEXT,
   description_en  TEXT,
-  image           VARCHAR(500),
-  promo_type      promo_type DEFAULT 'general',
+  image           VARCHAR(255),
+  promo_type      VARCHAR(30) DEFAULT 'general',
   destination_id  INTEGER REFERENCES destinations(id) ON DELETE SET NULL,
-  program_id      INTEGER REFERENCES travel_programs(id) ON DELETE SET NULL,
   original_price  NUMERIC(10,2),
   promo_price     NUMERIC(10,2),
-  discount_percent NUMERIC(5,2),
+  discount_percent INTEGER,
+  currency        VARCHAR(5) DEFAULT 'EUR',
   promo_code      VARCHAR(30),
-  valid_from      DATE,
-  valid_until     DATE,
+  valid_from      TIMESTAMP WITH TIME ZONE,
+  valid_until     TIMESTAMP WITH TIME ZONE,
   is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+  is_featured     BOOLEAN DEFAULT FALSE,
   created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -439,7 +486,9 @@ CREATE TABLE shop_categories (
   slug     VARCHAR(80) NOT NULL UNIQUE,
   name_fr  VARCHAR(100) NOT NULL,
   name_en  VARCHAR(100),
-  icon     VARCHAR(80)
+  icon     VARCHAR(80),
+  image    VARCHAR(255),
+  is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE shop_products (
@@ -453,11 +502,28 @@ CREATE TABLE shop_products (
   category_id      INTEGER REFERENCES shop_categories(id) ON DELETE SET NULL,
   price            NUMERIC(10,2) NOT NULL,
   price_discounted NUMERIC(10,2),
+  currency         VARCHAR(5) DEFAULT 'EUR',
   stock            INTEGER DEFAULT -1,
+  sku              VARCHAR(50) UNIQUE,
+  brand            VARCHAR(100),
   affiliate_url    VARCHAR(500),
   is_affiliate     BOOLEAN DEFAULT FALSE,
+  is_featured      BOOLEAN DEFAULT FALSE,
   is_active        BOOLEAN NOT NULL DEFAULT TRUE,
+  rating           NUMERIC(3,1),
+  review_count     INTEGER DEFAULT 0,
   created_at       TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE shop_orders (
+  id           SERIAL PRIMARY KEY,
+  user_id      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  product_id   INTEGER REFERENCES shop_products(id) ON DELETE SET NULL,
+  quantity     INTEGER DEFAULT 1,
+  unit_price   NUMERIC(10,2),
+  total_price  NUMERIC(10,2),
+  status       VARCHAR(20) DEFAULT 'pending',
+  created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ─── Bookings ─────────────────────────────────────────────────────────────────
@@ -468,22 +534,65 @@ CREATE TABLE bookings (
   program_id      INTEGER REFERENCES travel_programs(id) ON DELETE SET NULL,
   first_name      VARCHAR(80) NOT NULL,
   last_name       VARCHAR(80) NOT NULL,
-  email           VARCHAR(120) NOT NULL,
+  email           VARCHAR(200) NOT NULL,
   phone           VARCHAR(30),
   nationality     VARCHAR(80),
-  participants    SMALLINT NOT NULL DEFAULT 1,
+  participants    INTEGER DEFAULT 1,
   departure_date  DATE,
   return_date     DATE,
+  total_price     NUMERIC(10,2),
+  currency        VARCHAR(5) DEFAULT 'EUR',
   special_requests TEXT,
-  total_price     NUMERIC(12,2),
-  currency        CHAR(3) DEFAULT 'MAD',
-  status          booking_status NOT NULL DEFAULT 'pending',
-  payment_status  payment_status NOT NULL DEFAULT 'pending',
+  status          VARCHAR(20) DEFAULT 'pending',
+  payment_status  VARCHAR(20) DEFAULT 'unpaid',
+  notes           TEXT,
   created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 CREATE INDEX idx_bookings_user   ON bookings(user_id);
 CREATE INDEX idx_bookings_status ON bookings(status);
+
+-- ─── Commandes (panier) ────────────────────────────────────────────────────────
+CREATE TABLE orders (
+  id              SERIAL PRIMARY KEY,
+  reference       VARCHAR(20) NOT NULL UNIQUE,
+  user_id         INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  first_name      VARCHAR(80) NOT NULL,
+  last_name       VARCHAR(80) NOT NULL,
+  email           VARCHAR(200) NOT NULL,
+  phone           VARCHAR(30),
+  billing_address TEXT,
+  status          VARCHAR(20) NOT NULL DEFAULT 'pending',
+  -- statuses: pending, confirmed, paid, processing, completed, cancelled, refunded
+  payment_status  VARCHAR(20) NOT NULL DEFAULT 'pending',
+  subtotal        NUMERIC(12,2) NOT NULL DEFAULT 0,
+  total           NUMERIC(12,2) NOT NULL DEFAULT 0,
+  currency        VARCHAR(3) NOT NULL DEFAULT 'MAD',
+  notes           TEXT,
+  created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX idx_orders_user   ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+
+CREATE TABLE order_items (
+  id              SERIAL PRIMARY KEY,
+  order_id        INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  item_type       VARCHAR(20) NOT NULL,
+  -- item_type: program, product
+  program_id      INTEGER REFERENCES travel_programs(id) ON DELETE SET NULL,
+  product_id      INTEGER REFERENCES shop_products(id) ON DELETE SET NULL,
+  quantity        INTEGER NOT NULL DEFAULT 1,
+  unit_price      NUMERIC(12,2) NOT NULL,
+  departure_date  DATE,
+  participants    INTEGER,
+  subtotal        NUMERIC(12,2) NOT NULL,
+  CONSTRAINT chk_order_item_type CHECK (
+    (item_type = 'program' AND program_id IS NOT NULL AND product_id IS NULL) OR
+    (item_type = 'product' AND product_id IS NOT NULL AND program_id IS NULL)
+  )
+);
+CREATE INDEX idx_order_items_order ON order_items(order_id);
 
 -- ─── RSS Items ────────────────────────────────────────────────────────────────
 CREATE TABLE rss_items (
@@ -491,7 +600,8 @@ CREATE TABLE rss_items (
   title        VARCHAR(300) NOT NULL,
   link         VARCHAR(500),
   description  TEXT,
-  category     rss_category DEFAULT 'news',
+  category     VARCHAR(50) DEFAULT 'news',
+  image        VARCHAR(255),
   is_active    BOOLEAN NOT NULL DEFAULT TRUE,
   published_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -530,10 +640,10 @@ $$;
 CREATE TRIGGER trg_destinations_upd BEFORE UPDATE ON destinations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER trg_programs_upd BEFORE UPDATE ON travel_programs
+CREATE TRIGGER trg_bookings_upd BEFORE UPDATE ON bookings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER trg_bookings_upd BEFORE UPDATE ON bookings
+CREATE TRIGGER trg_orders_upd BEFORE UPDATE ON orders
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TRIGGER trg_posts_upd BEFORE UPDATE ON blog_posts

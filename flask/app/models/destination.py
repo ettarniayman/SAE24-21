@@ -5,6 +5,7 @@ destination_activities = db.Table(
     "destination_activities",
     db.Column("destination_id", db.Integer, db.ForeignKey("destinations.id"), primary_key=True),
     db.Column("activity_id", db.Integer, db.ForeignKey("activities.id"), primary_key=True),
+    db.Column("sort_order", db.Integer, default=0),
 )
 
 destination_themes = db.Table(

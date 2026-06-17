@@ -39,6 +39,8 @@ Site web complet d'agence de voyage développé dans le cadre d'un projet SAE en
 
 ## Installation Rapide
 
+> Guide detaille avec explication de chaque variable d'environnement et depannage : [docs/INSTALL.md](docs/INSTALL.md)
+
 ### Prérequis
 - Docker Desktop installé et démarré
 - Git
@@ -65,9 +67,10 @@ docker-compose up -d --build
 
 ### 4. Initialiser la base de données
 ```bash
-# Attendre que PostgreSQL soit prêt (30s environ)
+# schema.sql, views_triggers.sql et seed.sql sont déjà exécutés automatiquement
+# au premier démarrage du conteneur postgres (docker-entrypoint-initdb.d).
+# Il reste à appliquer les migrations Alembic :
 docker exec rtvoyage_flask flask db upgrade
-docker exec -i rtvoyage_postgres psql -U rtvoyage -d rtvoyage_db < database/seed.sql
 ```
 
 ### 5. Accéder à l'application
@@ -88,10 +91,17 @@ SAE24-21/
 ├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
+├── docs/
+│   └── INSTALL.md          # Guide d'installation detaille
+├── scripts/                # Scripts utilitaires ponctuels (seed d'images, etc.)
+│   ├── README.md
+│   └── fetch_destination_images.py
 ├── database/
-│   ├── schema.sql          # Schéma PostgreSQL complet
-│   ├── seed.sql            # Données initiales (80+ destinations)
-│   └── views_triggers.sql  # Vues et triggers
+│   ├── schema/
+│   │   ├── schema.sql          # Schéma PostgreSQL complet
+│   │   └── views_triggers.sql  # Vues et triggers
+│   └── seed/
+│       └── seed.sql            # Données initiales (80+ destinations)
 ├── apache/
 │   ├── Dockerfile
 │   └── rtvoyage.conf       # VirtualHost + reverse proxy
@@ -142,8 +152,9 @@ pip install -r requirements.txt
 
 # Créer la base PostgreSQL
 createdb rtvoyage_db
-psql rtvoyage_db < ../database/schema.sql
-psql rtvoyage_db < ../database/seed.sql
+psql rtvoyage_db < ../database/schema/schema.sql
+psql rtvoyage_db < ../database/schema/views_triggers.sql
+psql rtvoyage_db < ../database/seed/seed.sql
 
 # Variables d'environnement
 set DATABASE_URL=postgresql://postgres:password@localhost/rtvoyage_db

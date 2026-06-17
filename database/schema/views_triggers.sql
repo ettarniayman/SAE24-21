@@ -11,16 +11,14 @@ CREATE INDEX IF NOT EXISTS idx_blog_published  ON blog_posts(published_at DESC) 
 CREATE INDEX IF NOT EXISTS idx_promo_valid     ON promotions(valid_until) WHERE is_active = TRUE;
 CREATE INDEX IF NOT EXISTS idx_booking_ref     ON bookings(reference);
 
--- ─── View: active promotions with program/dest info ───────────────────────────
+-- ─── View: active promotions with destination info ────────────────────────────
 CREATE OR REPLACE VIEW v_active_promotions AS
 SELECT
   p.*,
   d.name_fr  AS dest_name_fr,
-  d.image_main AS dest_image,
-  tp.name_fr AS program_name_fr
+  d.image_main AS dest_image
 FROM promotions p
 LEFT JOIN destinations d  ON d.id  = p.destination_id
-LEFT JOIN travel_programs tp ON tp.id = p.program_id
 WHERE p.is_active = TRUE
   AND (p.valid_until IS NULL OR p.valid_until >= CURRENT_DATE);
 

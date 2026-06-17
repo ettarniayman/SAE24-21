@@ -11,6 +11,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rtvoyage_secret_2026}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/schema/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/schema/views_triggers.sql:/docker-entrypoint-initdb.d/02_views_triggers.sql:ro
+      - ./database/seed/seed.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
     ports:
       - "5432:5432"
     networks:
@@ -28,6 +31,7 @@ services:
     container_name: rtvoyage_flask
     restart: unless-stopped
     environment:
+      PYTHONDONTWRITEBYTECODE: 1
       FLASK_ENV: ${FLASK_ENV:-production}
       SECRET_KEY: ${SECRET_KEY:-change_this_super_secret_key_2026}
       DATABASE_URL: postgresql://${POSTGRES_USER:-rtvoyage_user}:${POSTGRES_PASSWORD:-rtvoyage_secret_2026}@postgres:5432/${POSTGRES_DB:-rtvoyage}

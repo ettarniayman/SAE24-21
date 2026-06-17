@@ -27,7 +27,7 @@ def create_app(config_name=None):
     from .models import (
         user, country, destination, activity, hotel, program,
         airline, testimonial, blog, contact, newsletter, faq,
-        promotion, media, shop, booking, rss_item
+        promotion, media, shop, booking, order, rss_item
     )
 
     # Blueprints
@@ -38,6 +38,7 @@ def create_app(config_name=None):
     from .routes.airlines import bp as airlines_bp
     from .routes.blog import bp as blog_bp
     from .routes.shop import bp as shop_bp
+    from .routes.cart import bp as cart_bp
     from .routes.contact import bp as contact_bp
     from .routes.auth import bp as auth_bp
     from .routes.rss import bp as rss_bp
@@ -51,6 +52,7 @@ def create_app(config_name=None):
     app.register_blueprint(airlines_bp, url_prefix="/compagnies")
     app.register_blueprint(blog_bp, url_prefix="/blog")
     app.register_blueprint(shop_bp, url_prefix="/boutique")
+    app.register_blueprint(cart_bp, url_prefix="/panier")
     app.register_blueprint(contact_bp, url_prefix="/contact")
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(rss_bp)
@@ -80,18 +82,21 @@ def create_app(config_name=None):
     # Context processors
     @app.context_processor
     def inject_globals():
+        from flask import session
         from .models.destination import Destination
         from .models.promotion import Promotion
         from .models.rss_item import RSSItem
         featured = Destination.query.filter_by(is_featured=True).limit(6).all()
         active_promos = Promotion.query.filter_by(is_active=True).limit(3).all()
         latest_news = RSSItem.query.order_by(RSSItem.published_at.desc()).limit(5).all()
+        cart_count = sum(item.get("quantity", 1) for item in session.get("cart", []))
         return dict(
             featured_destinations=featured,
             active_promotions=active_promos,
             latest_news=latest_news,
             google_maps_api_key=app.config.get("GOOGLE_MAPS_API_KEY", ""),
             current_lang=get_locale(),
+            cart_count=cart_count,
         )
 
     return app

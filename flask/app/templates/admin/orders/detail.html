@@ -1,0 +1,109 @@
+{% extends "admin/base.html" %}
+{% block title %}Commande {{ order.reference }} — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Commande <span>{{ order.reference }}</span></h1>
+  <a href="{{ url_for('admin.order_list') }}" class="btn btn-ghost btn-sm"><i class="fa fa-arrow-left"></i> Retour</a>
+</div>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;max-width:1100px;">
+  <div>
+    <div class="admin-box" style="margin-bottom:20px;">
+      <div class="admin-box__header"><span class="admin-box__title">Client</span></div>
+      <div class="admin-box__body">
+        <table style="width:100%;font-size:0.88rem;border-collapse:collapse;">
+          {% for label, value in [('Référence', order.reference), ('Client', order.first_name ~ ' ' ~ order.last_name), ('Email', order.email), ('Téléphone', order.phone or '—'), ('Adresse', order.billing_address or '—'), ('Notes', order.notes or '—')] %}
+          <tr style="border-bottom:1px solid var(--border-dark);">
+            <td style="padding:10px 0;color:var(--text-muted);width:35%;">{{ label }}</td>
+            <td style="padding:10px 0;font-weight:500;">{{ value }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-box">
+      <div class="admin-box__header"><span class="admin-box__title">Articles</span></div>
+      <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Type</th><th>Article</th><th>Qté</th><th>Prix unitaire</th><th>Sous-total</th></tr></thead>
+          <tbody>
+            {% for item in order.items %}
+            <tr>
+              <td><span class="badge badge-gold">{{ 'Programme' if item.item_type == 'program' else 'Produit' }}</span></td>
+              <td style="font-size:0.86rem;">
+                {% if item.item_type == 'program' and item.program %}{{ item.program.name_fr }}
+                {% elif item.item_type == 'product' and item.product %}{{ item.product.name_fr }}
+                {% else %}—{% endif %}
+                {% if item.departure_date %}<br><span style="font-size:0.72rem;color:var(--text-sub);">Départ : {{ item.departure_date.strftime('%d/%m/%Y') }}</span>{% endif %}
+              </td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.unit_price }} {{ order.currency }}</td>
+              <td style="color:var(--gold);font-weight:600;">{{ item.subtotal }} {{ order.currency }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-box__body" style="border-top:1px solid var(--border-dark);">
+        <p style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;">
+          <span>Total</span><span style="color:var(--gold);">{{ order.total }} {{ order.currency }}</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="admin-box">
+      <div class="admin-box__header"><span class="admin-box__title">Statut</span></div>
+      <div class="admin-box__body">
+        <div id="status-feedback" style="margin-bottom:12px;"></div>
+        <div class="form-group">
+          <label class="form-label">Statut de la commande</label>
+          <select id="order-status" class="form-control">
+            {% for s in ['pending','confirmed','paid','processing','completed','cancelled','refunded'] %}
+            <option value="{{ s }}" {{ 'selected' if order.status == s }}>{{ s | title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Statut du paiement</label>
+          <select id="order-payment-status" class="form-control">
+            {% for s in ['pending','paid','refunded','failed'] %}
+            <option value="{{ s }}" {{ 'selected' if order.payment_status == s }}>{{ s | title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button id="update-status-btn" type="button" class="btn btn-gold" style="width:100%;justify-content:center;">
+          Mettre à jour
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('update-status-btn').addEventListener('click', async function () {
+  const status = document.getElementById('order-status').value;
+  const paymentStatus = document.getElementById('order-payment-status').value;
+  const feedback = document.getElementById('status-feedback');
+  try {
+    const resp = await fetch("{{ url_for('admin.order_update_status', order_id=order.id) }}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token() }}',
+      },
+      body: JSON.stringify({ status: status, payment_status: paymentStatus }),
+    });
+    const data = await resp.json();
+    if (data.success) {
+      feedback.innerHTML = '<span class="badge badge-success">Statut mis à jour</span>';
+    } else {
+      feedback.innerHTML = '<span class="badge badge-danger">Erreur</span>';
+    }
+  } catch (e) {
+    feedback.innerHTML = '<span class="badge badge-danger">Erreur réseau</span>';
+  }
+});
+</script>
+{% endblock %}

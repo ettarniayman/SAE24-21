@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Commande {{ order.reference }} — RT Voyage{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Confirmation</span></nav>
+    <h1 class="page-hero__title">{% if current_lang=='en' %}Order confirmed{% else %}Commande confirmée{% endif %}</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container" style="max-width:600px;text-align:center;">
+    <i class="fa fa-circle-check" style="font-size:3rem;color:var(--success);margin-bottom:20px;"></i>
+    <h2 style="font-size:1.4rem;margin-bottom:8px;">Merci, {{ order.first_name }} !</h2>
+    <p style="color:var(--text-muted);margin-bottom:24px;">
+      Votre commande <strong style="color:var(--gold);">{{ order.reference }}</strong> a bien été enregistrée.
+      Un conseiller vous contactera prochainement pour finaliser le paiement.
+    </p>
+    <div class="card" style="padding:24px;text-align:left;margin-bottom:24px;">
+      <p style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Référence</span><strong>{{ order.reference }}</strong></p>
+      <p style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Statut</span><span class="badge badge-gold">{{ order.status }}</span></p>
+      <p style="display:flex;justify-content:space-between;"><span>Total</span><strong style="color:var(--gold);">{{ order.total }} {{ order.currency }}</strong></p>
+    </div>
+    <a href="{{ url_for('main.index') }}" class="btn btn-gold">Retour à l'accueil</a>
+  </div>
+</section>
+{% endblock %}

@@ -119,6 +119,14 @@
       <a href="{{ url_for('main.set_lang', lang='en') }}" style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;padding:5px 8px;border-radius:4px;color:{% if current_lang=='en' %}var(--gold){% else %}var(--text-sub){% endif %};border:1px solid {% if current_lang=='en' %}var(--gold-border){% else %}transparent{% endif %};">EN</a>
     </div>
 
+    {# Panier #}
+    <a href="{{ url_for('cart.view') }}" class="btn btn-ghost btn-sm" style="position:relative;" title="Panier">
+      <i class="fa fa-cart-shopping"></i>
+      {% if cart_count %}
+      <span style="position:absolute;top:-6px;right:-6px;background:var(--gold);color:#000;font-size:0.62rem;font-weight:700;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;">{{ cart_count }}</span>
+      {% endif %}
+    </a>
+
     {# Auth #}
     {% if current_user.is_authenticated %}
       {% if current_user.is_agent() %}

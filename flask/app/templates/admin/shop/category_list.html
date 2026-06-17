@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% block title %}Catégories boutique — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Catégories boutique <span>({{ categories | length }})</span></h1>
+  <div style="display:flex;gap:10px;">
+    <a href="{{ url_for('admin.shop_list') }}" class="btn btn-outline btn-sm"><i class="fa fa-box"></i> Produits</a>
+    <a href="{{ url_for('admin.shop_category_create') }}" class="btn btn-gold btn-sm"><i class="fa fa-plus"></i> Nouvelle catégorie</a>
+  </div>
+</div>
+<div class="admin-box">
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Icône</th><th>Nom (FR)</th><th>Nom (EN)</th><th>Slug</th><th>Produits</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for category in categories %}
+        <tr>
+          <td style="text-align:center;width:48px;">{% if category.icon %}<i class="fa {{ category.icon }}" style="color:var(--gold);"></i>{% else %}—{% endif %}</td>
+          <td style="font-weight:600;color:var(--text-light);">{{ category.name_fr }}</td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ category.name_en }}</td>
+          <td style="font-family:monospace;font-size:0.8rem;color:var(--text-sub);">{{ category.slug }}</td>
+          <td style="font-size:0.84rem;">{{ category.products.count() }}</td>
+          <td><span class="badge {{ 'badge-success' if category.is_active else 'badge-danger' }}">{{ 'Active' if category.is_active else 'Inactive' }}</span></td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{{ url_for('admin.shop_category_edit', category_id=category.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-edit"></i></a>
+              {% if current_user.is_admin() %}
+              <form action="{{ url_for('admin.shop_category_delete', category_id=category.id) }}" method="POST" onsubmit="return confirm('Supprimer cette catégorie ?');" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-sub);">Aucune catégorie</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

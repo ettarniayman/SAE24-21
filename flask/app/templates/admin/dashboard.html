@@ -42,6 +42,13 @@
       <div class="admin-stat-card__label">Réservations</div>
     </div>
   </div>
+  <div class="admin-stat-card" style="{{ 'border-color:rgba(201,169,110,0.4)' if stats.orders_pending > 0 else '' }}">
+    <div class="admin-stat-card__icon"><i class="fa fa-receipt"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ stats.orders }}</div>
+      <div class="admin-stat-card__label">Commandes{% if stats.orders_pending > 0 %} ({{ stats.orders_pending }} en attente){% endif %}</div>
+    </div>
+  </div>
   <div class="admin-stat-card">
     <div class="admin-stat-card__icon"><i class="fa fa-users"></i></div>
     <div>
@@ -137,6 +144,29 @@
 
   {# Messages récents + Témoignages en attente #}
   <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="admin-box">
+      <div class="admin-box__header">
+        <span class="admin-box__title"><i class="fa fa-receipt" style="color:var(--gold);margin-right:8px;"></i> Dernières commandes</span>
+        <a href="{{ url_for('admin.order_list') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+      </div>
+      <div class="admin-box__body" style="padding:0;">
+        {% for o in recent_orders %}
+        <div style="padding:14px 22px;border-bottom:1px solid var(--border-dark);display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <p style="font-size:0.84rem;font-weight:600;">{{ o.first_name }} {{ o.last_name }}</p>
+            <p style="font-size:0.72rem;color:var(--text-sub);font-family:monospace;">{{ o.reference }}</p>
+          </div>
+          <div style="text-align:right;">
+            <p style="font-size:0.84rem;color:var(--gold);font-weight:700;">{{ o.total }} {{ o.currency }}</p>
+            <span class="badge {% if o.status in ['confirmed','paid','completed'] %}badge-success{% elif o.status in ['cancelled','refunded'] %}badge-danger{% else %}badge-muted{% endif %}" style="font-size:0.68rem;">{{ o.status }}</span>
+          </div>
+        </div>
+        {% else %}
+        <p style="padding:20px;text-align:center;color:var(--text-sub);font-size:0.84rem;">Aucune commande</p>
+        {% endfor %}
+      </div>
+    </div>
+
     <div class="admin-box">
       <div class="admin-box__header">
         <span class="admin-box__title"><i class="fa fa-envelope" style="color:var(--gold);margin-right:8px;"></i> Messages récents</span>

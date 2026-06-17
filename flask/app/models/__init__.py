@@ -14,6 +14,7 @@ from .promotion import Promotion
 from .media import Media
 from .shop import ShopProduct, ShopCategory, ShopOrder
 from .booking import Booking
+from .order import Order, OrderItem
 from .rss_item import RSSItem
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "Testimonial", "BlogPost", "BlogCategory", "BlogTag", "ContactMessage",
     "NewsletterSubscriber", "FAQCategory", "FAQItem", "Promotion",
     "Media", "ShopProduct", "ShopCategory", "ShopOrder", "Booking", "RSSItem",
+    "Order", "OrderItem",
 ]

@@ -17,11 +17,17 @@
           <td style="font-family:monospace;color:var(--gold);">{{ country.code }}</td>
           <td style="font-size:0.82rem;color:var(--text-muted);">{{ country.continent or '—' }}</td>
           <td style="font-size:0.82rem;color:var(--text-muted);">{{ country.capital or '—' }}</td>
-          <td style="font-size:0.82rem;">{{ country.destinations | length }}</td>
+          <td style="font-size:0.82rem;">{{ country.destinations.count() }}</td>
           <td><span class="badge {{ 'badge-success' if country.is_active else 'badge-danger' }}">{{ 'Actif' if country.is_active else 'Inactif' }}</span></td>
           <td>
             <div style="display:flex;gap:6px;">
               <a href="{{ url_for('admin.country_edit', country_id=country.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-edit"></i></a>
+              {% if current_user.is_admin() %}
+              <form action="{{ url_for('admin.country_delete', country_id=country.id) }}" method="POST" onsubmit="return confirm('Supprimer ce pays ?');" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger btn-sm" type="submit"><i class="fa fa-trash"></i></button>
+              </form>
+              {% endif %}
             </div>
           </td>
         </tr>

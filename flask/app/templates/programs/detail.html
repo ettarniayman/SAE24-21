@@ -168,9 +168,15 @@
           <p style="font-size:1.2rem;color:var(--text-muted);">{% if current_lang=='fr' %}Sur devis{% else %}On request{% endif %}</p>
         {% endif %}
         <p style="font-size:0.76rem;color:var(--text-sub);margin-bottom:24px;">{{ program.duration_days }} {% if current_lang=='fr' %}jours / {{ program.duration_nights or program.duration_days - 1 }} nuits{% else %}days / {{ program.duration_nights or program.duration_days - 1 }} nights{% endif %}</p>
-        <a href="{{ url_for('contact.index') }}?sujet=reservation&programme={{ program.name_fr | urlencode }}" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:10px;">
-          <i class="fa fa-calendar-check"></i> {% if current_lang=='fr' %}Réserver{% else %}Book{% endif %}
-        </a>
+        <form method="POST" action="{{ url_for('cart.add') }}" style="margin-bottom:10px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="item_type" value="program">
+          <input type="hidden" name="program_id" value="{{ program.id }}">
+          <input type="hidden" name="participants" value="1">
+          <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;">
+            <i class="fa fa-cart-plus"></i> {% if current_lang=='fr' %}Ajouter au panier{% else %}Add to cart{% endif %}
+          </button>
+        </form>
         <a href="{{ url_for('contact.index') }}?sujet=information&programme={{ program.name_fr | urlencode }}" class="btn btn-outline" style="width:100%;justify-content:center;">
           <i class="fa fa-question-circle"></i> {% if current_lang=='fr' %}Demander un devis{% else %}Request a quote{% endif %}
         </a>

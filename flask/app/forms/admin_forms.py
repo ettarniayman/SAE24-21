@@ -176,6 +176,15 @@ class UserForm(FlaskForm):
     submit = SubmitField("Enregistrer")
 
 
+class ShopCategoryForm(FlaskForm):
+    name_fr = StringField("Nom (FR)", validators=[DataRequired(), Length(max=100)])
+    name_en = StringField("Nom (EN)", validators=[DataRequired(), Length(max=100)])
+    slug = StringField("Slug", validators=[Optional(), Length(max=80)])
+    icon = StringField("Icône (classe FontAwesome)", validators=[Optional(), Length(max=50)])
+    is_active = BooleanField("Active", default=True)
+    submit = SubmitField("Enregistrer")
+
+
 class ShopProductForm(FlaskForm):
     name_fr = StringField("Nom (FR)", validators=[DataRequired(), Length(max=150)])
     name_en = StringField("Nom (EN)", validators=[Optional(), Length(max=150)])

@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% block title %}Commandes — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Commandes <span>({{ pagination.total }})</span></h1>
+</div>
+<div class="admin-box">
+  <div class="admin-box__header">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% for s, label in [('','Toutes'),('pending','En attente'),('confirmed','Confirmées'),('paid','Payées'),('processing','En traitement'),('completed','Terminées'),('cancelled','Annulées'),('refunded','Remboursées')] %}
+        <a href="{{ url_for('admin.order_list', status=s) }}" class="btn btn-sm {{ 'btn-gold' if current_status == s else 'btn-ghost' }}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>Réf.</th><th>Client</th><th>Articles</th><th>Total</th><th>Statut</th><th>Paiement</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td><a href="{{ url_for('admin.order_detail', order_id=o.id) }}" style="color:var(--gold);font-family:monospace;font-size:0.82rem;">{{ o.reference }}</a></td>
+          <td><p style="font-size:0.88rem;font-weight:600;">{{ o.first_name }} {{ o.last_name }}</p><p style="font-size:0.72rem;color:var(--text-sub);">{{ o.email }}</p></td>
+          <td style="font-size:0.84rem;">{{ o.items.count() }}</td>
+          <td style="font-size:0.9rem;color:var(--gold);font-weight:700;">{{ o.total }} {{ o.currency }}</td>
+          <td><span class="badge {% if o.status in ['confirmed','paid','completed'] %}badge-success{% elif o.status in ['cancelled','refunded'] %}badge-danger{% else %}badge-muted{% endif %}">{{ o.status }}</span></td>
+          <td><span class="badge {% if o.payment_status=='paid' %}badge-success{% elif o.payment_status=='failed' %}badge-danger{% else %}badge-muted{% endif %}">{{ o.payment_status }}</span></td>
+          <td style="font-size:0.78rem;color:var(--text-muted);">{{ o.created_at.strftime('%d/%m/%Y') if o.created_at else '—' }}</td>
+          <td><a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="btn btn-outline btn-sm"><i class="fa fa-eye"></i></a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-sub);">Aucune commande</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}
