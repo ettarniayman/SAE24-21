@@ -22,7 +22,7 @@ class Order(db.Model):
 
     subtotal = db.Column(db.Numeric(12, 2), nullable=False, default=0)
     total = db.Column(db.Numeric(12, 2), nullable=False, default=0)
-    currency = db.Column(db.String(3), nullable=False, default="MAD")
+    currency = db.Column(db.String(3), nullable=False, default="EUR")
 
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

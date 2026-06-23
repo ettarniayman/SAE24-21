@@ -4,9 +4,9 @@
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Boutique</span></nav>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><span>{% if current_lang=='fr' %}Boutique{% else %}Shop{% endif %}</span></nav>
     <h1 class="page-hero__title">{% if current_lang=='en' %}Travel Shop{% else %}Boutique Voyage{% endif %}</h1>
-    <p class="page-hero__sub">Équipements, guides et accessoires pour vos aventures</p>
+    <p class="page-hero__sub">{% if current_lang=='fr' %}Équipements, guides et accessoires pour vos aventures{% else %}Gear, guides and accessories for your adventures{% endif %}</p>
   </div>
 </div>
 
@@ -14,17 +14,17 @@
   <div class="container">
     <div class="filter-bar">
       <form method="GET" style="display:contents;">
-        <input type="text" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="Rechercher…" style="min-width:200px;max-width:300px;">
+        <input type="text" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="{% if current_lang=='fr' %}Rechercher…{% else %}Search…{% endif %}" style="min-width:200px;max-width:300px;">
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <a href="{{ url_for('shop.index') }}" class="btn btn-sm {{ 'btn-gold' if not request.args.get('category') else 'btn-ghost' }}">Tout</a>
+          <a href="{{ url_for('shop.index') }}" class="btn btn-sm {{ 'btn-gold' if not request.args.get('category') else 'btn-ghost' }}">{% if current_lang=='fr' %}Tout{% else %}All{% endif %}</a>
           {% for cat in categories %}
-          <a href="{{ url_for('shop.index', category=cat.slug) }}" class="btn btn-sm {{ 'btn-gold' if request.args.get('category')==cat.slug else 'btn-ghost' }}">{{ cat.name_fr }}</a>
+          <a href="{{ url_for('shop.index', category=cat.slug) }}" class="btn btn-sm {{ 'btn-gold' if request.args.get('category')==cat.slug else 'btn-ghost' }}">{{ cat.name_fr if current_lang=='fr' else cat.name_en or cat.name_fr }}</a>
           {% endfor %}
         </div>
         <select name="sort" class="form-control" style="max-width:160px;">
-          <option value="newest" {{ 'selected' if request.args.get('sort','newest')=='newest' }}>Plus récents</option>
-          <option value="price_asc" {{ 'selected' if request.args.get('sort')=='price_asc' }}>Prix croissant</option>
-          <option value="price_desc" {{ 'selected' if request.args.get('sort')=='price_desc' }}>Prix décroissant</option>
+          <option value="newest" {{ 'selected' if request.args.get('sort','newest')=='newest' }}>{% if current_lang=='fr' %}Plus récents{% else %}Newest{% endif %}</option>
+          <option value="price_asc" {{ 'selected' if request.args.get('sort')=='price_asc' }}>{% if current_lang=='fr' %}Prix croissant{% else %}Price: low to high{% endif %}</option>
+          <option value="price_desc" {{ 'selected' if request.args.get('sort')=='price_desc' }}>{% if current_lang=='fr' %}Prix décroissant{% else %}Price: high to low{% endif %}</option>
         </select>
         <button type="submit" class="btn btn-gold btn-sm"><i class="fa fa-filter"></i></button>
       </form>
@@ -34,23 +34,23 @@
       {% for product in products %}
       <a href="{{ url_for('shop.product_detail', slug=product.slug) }}" class="card" style="text-decoration:none;display:block;overflow:hidden;transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
         <div style="position:relative;height:220px;overflow:hidden;background:var(--bg-card2);">
-          <img src="{{ product.image_main or url_for('static',filename='images/product-placeholder.jpg') }}" alt="{{ product.name_fr }}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+          <img src="{{ product.image_main or url_for('static',filename='images/product-placeholder.jpg') }}" alt="{{ (product.name_fr if current_lang=='fr' else product.name_en) or product.name_fr }}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
           {% if product.price_discounted and product.price_discounted < product.price %}
           <span style="position:absolute;top:12px;right:12px;background:#c0392b;color:#fff;font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:12px;">-{{ ((1 - product.price_discounted/product.price)*100)|int }}%</span>
           {% endif %}
-          {% if product.is_affiliate %}<span style="position:absolute;top:12px;left:12px;" class="badge badge-muted">Affiliation</span>{% endif %}
-          {% if product.stock == 0 %}<div style="position:absolute;inset:0;background:rgba(5,8,16,0.7);display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:0.84rem;font-weight:700;">Épuisé</span></div>{% endif %}
+          {% if product.is_affiliate %}<span style="position:absolute;top:12px;left:12px;" class="badge badge-muted">{% if current_lang=='fr' %}Affiliation{% else %}Affiliate{% endif %}</span>{% endif %}
+          {% if product.stock == 0 %}<div style="position:absolute;inset:0;background:rgba(5,8,16,0.7);display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:0.84rem;font-weight:700;">{% if current_lang=='fr' %}Épuisé{% else %}Sold out{% endif %}</span></div>{% endif %}
         </div>
         <div style="padding:18px 20px;">
-          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;">{{ product.category.name_fr if product.category else '—' }}</p>
+          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;">{{ (product.category.name_fr if current_lang=='fr' else product.category.name_en or product.category.name_fr) if product.category else '—' }}</p>
           <h3 style="font-size:0.95rem;font-weight:700;color:var(--text-light);margin-bottom:12px;line-height:1.3;">{{ (product.name_fr if current_lang=='fr' else product.name_en) or product.name_fr }}</h3>
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div>
               {% if product.price_discounted and product.price_discounted < product.price %}
-              <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;line-height:1;">{{ product.price_discounted }} <span style="font-size:0.7rem;font-family:var(--font-sans);color:var(--text-sub);">MAD</span></p>
-              <p style="font-size:0.74rem;color:var(--text-sub);text-decoration:line-through;">{{ product.price }} MAD</p>
+              <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;line-height:1;">{{ product.price_discounted }} <span style="font-size:0.7rem;font-family:var(--font-sans);color:var(--text-sub);">€</span></p>
+              <p style="font-size:0.74rem;color:var(--text-sub);text-decoration:line-through;">{{ product.price }} €</p>
               {% else %}
-              <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;line-height:1;">{{ product.price }} <span style="font-size:0.7rem;font-family:var(--font-sans);color:var(--text-sub);">MAD</span></p>
+              <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;line-height:1;">{{ product.price }} <span style="font-size:0.7rem;font-family:var(--font-sans);color:var(--text-sub);">€</span></p>
               {% endif %}
             </div>
             <span class="btn btn-outline btn-sm">{{ 'Buy' if current_lang=='en' else 'Acheter' }}</span>
@@ -58,7 +58,7 @@
         </div>
       </a>
       {% else %}
-      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">Aucun produit disponible.</p>
+      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">{% if current_lang=='fr' %}Aucun produit disponible.{% else %}No products available.{% endif %}</p>
       {% endfor %}
     </div>
     {% include 'partials/_pagination.html' %}

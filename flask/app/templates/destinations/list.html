@@ -30,7 +30,7 @@
         <option value="">{% if current_lang=='fr' %}Tous{% else %}All{% endif %}</option>
         {% for c in countries %}
           <option value="{{ c.id }}" {% if current_country == c.id %}selected{% endif %}>
-            {{ c.flag_emoji or '' }} {{ c.name_fr }}
+            {{ c.flag_emoji or '' }} {{ c.name_fr if current_lang=='fr' else c.name_en or c.name_fr }}
           </option>
         {% endfor %}
       </select>
@@ -81,7 +81,7 @@
   {# Results count #}
   <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">
     {{ pagination.total }} {% if current_lang=='fr' %}destination(s) trouvée(s){% else %}destination(s) found{% endif %}
-    {% if search %} pour « {{ search }} »{% endif %}
+    {% if search %}{% if current_lang=='fr' %} pour « {{ search }} »{% else %} for "{{ search }}"{% endif %}{% endif %}
   </p>
 
   {# Grid #}

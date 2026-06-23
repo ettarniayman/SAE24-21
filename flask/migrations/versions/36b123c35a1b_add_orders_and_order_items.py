@@ -40,7 +40,7 @@ def upgrade():
             sa.Column('payment_status', sa.String(length=20), nullable=False, server_default='pending'),
             sa.Column('subtotal', sa.Numeric(12, 2), nullable=False, server_default='0'),
             sa.Column('total', sa.Numeric(12, 2), nullable=False, server_default='0'),
-            sa.Column('currency', sa.String(length=3), nullable=False, server_default='MAD'),
+            sa.Column('currency', sa.String(length=3), nullable=False, server_default='EUR'),
             sa.Column('notes', sa.Text(), nullable=True),
             sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()')),
             sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()')),

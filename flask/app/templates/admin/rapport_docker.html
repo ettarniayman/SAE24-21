@@ -1,0 +1,78 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard Docker — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Dashboard Docker</h1>
+  <a href="{{ url_for('admin.rapport_docker') }}" class="btn btn-sm">
+    <i class="fa fa-rotate"></i> Rafraîchir
+  </a>
+</div>
+
+{% if docker_error %}
+<div class="alert alert-danger" role="alert">
+  <i class="fa fa-circle-exclamation"></i> Docker n'est pas accessible depuis ce conteneur : {{ docker_error }}
+</div>
+{% endif %}
+
+<div class="admin-box" style="margin-bottom:24px;">
+  <div class="admin-box__header"><span class="admin-box__title"><i class="fa fa-cubes"></i> État des conteneurs</span></div>
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Conteneur</th>
+          <th>État</th>
+          <th>CPU</th>
+          <th>RAM</th>
+          <th>Démarré le</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in conteneurs %}
+        <tr>
+          <td style="font-weight:600;font-size:0.88rem;">{{ c.label }}</td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ c.name }}</td>
+          <td><span class="badge {{ 'badge-success' if c.ok else 'badge-danger' }}">{{ c.status }}</span></td>
+          <td>{{ c.cpu_pct }}%</td>
+          <td>{{ c.mem_mb }} Mo / {{ c.mem_lim }} Mo</td>
+          <td style="font-size:0.78rem;color:var(--text-sub);">{{ c.started }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:var(--text-sub);padding:24px;">Aucune donnée disponible</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="admin-box">
+  <div class="admin-box__header"><span class="admin-box__title"><i class="fa fa-clock-rotate-left"></i> Historique des événements (20 derniers)</span></div>
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date/Heure</th>
+          <th>Service</th>
+          <th>Action</th>
+          <th>Résultat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in history %}
+        <tr>
+          <td style="font-size:0.78rem;color:var(--text-sub);">{{ e.timestamp }}</td>
+          <td style="font-weight:600;font-size:0.86rem;">{{ e.service }}</td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ e.action }}</td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ e.status }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;color:var(--text-sub);padding:24px;">Aucun événement enregistré</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p style="font-size:0.74rem;color:var(--text-sub);margin-top:16px;">Généré le {{ generated_at }}</p>
+{% endblock %}

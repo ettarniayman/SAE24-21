@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Mon Profil — RT Voyage{% endblock %}
+{% block title %}{% if current_lang=='fr' %}Mon Profil{% else %}My Profile{% endif %} — RT Voyage{% endblock %}
 
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a> <span>/</span> <span>Mon Profil</span></nav>
-    <h1 class="page-hero__title">Mon Profil</h1>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a> <span>/</span> <span>{% if current_lang=='fr' %}Mon Profil{% else %}My Profile{% endif %}</span></nav>
+    <h1 class="page-hero__title">{% if current_lang=='fr' %}Mon Profil{% else %}My Profile{% endif %}</h1>
   </div>
 </div>
 
@@ -22,25 +22,25 @@
         <p style="font-size:0.78rem;color:var(--text-sub);margin-bottom:6px;">@{{ current_user.username }}</p>
         <span class="badge {{ 'badge-gold' if current_user.role in ['admin','super_admin'] else 'badge-muted' }}">{{ current_user.role | title }}</span>
         <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border-dark);">
-          <p style="font-size:0.72rem;color:var(--text-sub);">Membre depuis</p>
+          <p style="font-size:0.72rem;color:var(--text-sub);">{% if current_lang=='fr' %}Membre depuis{% else %}Member since{% endif %}</p>
           <p style="font-size:0.86rem;color:var(--text-muted);">{{ current_user.created_at.strftime('%B %Y') }}</p>
         </div>
         <a href="{{ url_for('auth.logout') }}" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:16px;font-size:0.84rem;">
-          <i class="fa fa-sign-out-alt"></i> Déconnexion
+          <i class="fa fa-sign-out-alt"></i> {% if current_lang=='fr' %}Déconnexion{% else %}Logout{% endif %}
         </a>
       </div>
       <div>
         <div class="card" style="padding:32px;margin-bottom:20px;">
-          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:24px;">Informations personnelles</h2>
+          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:24px;">{% if current_lang=='fr' %}Informations personnelles{% else %}Personal information{% endif %}</h2>
           <form method="POST" novalidate>
             {{ form.hidden_tag() }}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
               <div class="form-group">
-                <label class="form-label">Prénom</label>
+                <label class="form-label">{% if current_lang=='fr' %}Prénom{% else %}First name{% endif %}</label>
                 {{ form.first_name(class='form-control') }}
               </div>
               <div class="form-group">
-                <label class="form-label">Nom</label>
+                <label class="form-label">{% if current_lang=='fr' %}Nom{% else %}Last name{% endif %}</label>
                 {{ form.last_name(class='form-control') }}
               </div>
             </div>
@@ -49,28 +49,28 @@
               {{ form.email(class='form-control') }}
             </div>
             <div class="form-group">
-              <label class="form-label">Téléphone</label>
-              {{ form.phone(class='form-control', placeholder='+212 6 XX XX XX XX') }}
+              <label class="form-label">{% if current_lang=='fr' %}Téléphone{% else %}Phone{% endif %}</label>
+              {{ form.phone(class='form-control', placeholder='+33 6 XX XX XX XX') }}
             </div>
-            <button type="submit" class="btn btn-gold">Enregistrer</button>
+            <button type="submit" class="btn btn-gold">{% if current_lang=='fr' %}Enregistrer{% else %}Save{% endif %}</button>
           </form>
         </div>
         <div class="card" style="padding:32px;">
-          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:20px;">Mes Réservations</h2>
+          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:20px;">{% if current_lang=='fr' %}Mes Réservations{% else %}My Bookings{% endif %}</h2>
           {% if bookings %}
             {% for b in bookings %}
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border-dark);">
               <div>
                 <p style="font-family:monospace;font-size:0.8rem;color:var(--gold);">{{ b.reference }}</p>
-                <p style="font-size:0.86rem;font-weight:600;color:var(--text-light);">{{ b.program.name_fr if b.program else '—' }}</p>
+                <p style="font-size:0.86rem;font-weight:600;color:var(--text-light);">{{ (b.program.name_fr if current_lang=='fr' else b.program.name_en or b.program.name_fr) if b.program else '—' }}</p>
                 <p style="font-size:0.76rem;color:var(--text-sub);">{{ b.departure_date.strftime('%d/%m/%Y') if b.departure_date else '—' }}</p>
               </div>
               <span class="badge {{ 'badge-success' if b.status=='confirmed' else 'badge-muted' }}">{{ b.status | title }}</span>
             </div>
             {% endfor %}
           {% else %}
-            <p style="font-size:0.86rem;color:var(--text-sub);">Aucune réservation pour l'instant.</p>
-            <a href="{{ url_for('programs.list_programs') }}" class="btn btn-outline" style="margin-top:16px;">Découvrir nos programmes</a>
+            <p style="font-size:0.86rem;color:var(--text-sub);">{% if current_lang=='fr' %}Aucune réservation pour l'instant.{% else %}No bookings yet.{% endif %}</p>
+            <a href="{{ url_for('programs.list_programs') }}" class="btn btn-outline" style="margin-top:16px;">{% if current_lang=='fr' %}Découvrir nos programmes{% else %}Discover our programs{% endif %}</a>
           {% endif %}
         </div>
       </div>

@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from ..models.user import User
-from ..forms.auth_forms import LoginForm, RegisterForm
+from ..models.booking import Booking
+from ..forms.auth_forms import LoginForm, RegisterForm, ProfileForm
 from ..extensions import db
 from datetime import datetime, timezone
 
@@ -67,7 +68,17 @@ def logout():
     return redirect(url_for("main.index"))
 
 
-@bp.route("/profil")
+@bp.route("/profil", methods=["GET", "POST"])
 @login_required
 def profile():
-    return render_template("auth/profile.html")
+    form = ProfileForm(obj=current_user)
+    if form.validate_on_submit():
+        current_user.first_name = form.first_name.data
+        current_user.last_name = form.last_name.data
+        current_user.email = form.email.data.lower()
+        current_user.phone = form.phone.data or None
+        db.session.commit()
+        flash("Profil mis à jour.", "success")
+        return redirect(url_for("auth.profile"))
+    bookings = current_user.bookings.order_by(Booking.created_at.desc()).limit(10).all()
+    return render_template("auth/profile.html", form=form, bookings=bookings)

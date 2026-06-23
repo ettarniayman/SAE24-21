@@ -75,17 +75,35 @@ window.initDestMap = function () {
     });
   } catch (_) {}
 
-  /* Street View */
+  /* Street View, avec recherche de panorama le plus proche et fallback si aucun disponible
+     (frequent en zone desertique/isolee, ex: Merzouga) */
   if (svEl) {
     const svLat = parseFloat(svEl.dataset.lat || lat);
     const svLng = parseFloat(svEl.dataset.lng || lng);
-    new google.maps.StreetViewPanorama(svEl, {
-      position: { lat: svLat, lng: svLng },
-      pov: { heading: 0, pitch: 0 },
-      zoom: 1,
-      addressControl: false,
-      fullscreenControl: false
-    });
+    const captionEl = document.getElementById('streetViewCaption');
+    const streetViewService = new google.maps.StreetViewService();
+
+    streetViewService.getPanorama(
+      { location: { lat: svLat, lng: svLng }, radius: 50000, source: google.maps.StreetViewSource.OUTDOOR },
+      (data, status) => {
+        if (status === google.maps.StreetViewStatus.OK) {
+          new google.maps.StreetViewPanorama(svEl, {
+            position: data.location.latLng,
+            pov: { heading: 0, pitch: 0 },
+            zoom: 1,
+            addressControl: false,
+            fullscreenControl: false
+          });
+        } else {
+          svEl.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text-sub);background:var(--bg-card2);">
+              <i class="fa fa-image" style="font-size:1.8rem;opacity:0.4;"></i>
+              <span style="font-size:0.8rem;">Aucune image Street View disponible à proximité</span>
+            </div>`;
+          if (captionEl) captionEl.style.display = 'none';
+        }
+      }
+    );
   }
 };
 

@@ -454,6 +454,9 @@ CREATE TABLE medias (
   id               SERIAL PRIMARY KEY,
   destination_id   INTEGER REFERENCES destinations(id) ON DELETE SET NULL,
   hotel_id         INTEGER REFERENCES hotels(id)       ON DELETE SET NULL,
+  product_id       INTEGER,  -- FK vers shop_products(id) ajoutee plus bas, table pas encore creee a ce stade
+  program_id       INTEGER REFERENCES travel_programs(id) ON DELETE SET NULL,
+  post_id          INTEGER REFERENCES blog_posts(id)      ON DELETE SET NULL,
   filename         VARCHAR(255),            -- NULL when video_url is set
   original_name    VARCHAR(255),
   file_path        VARCHAR(500),
@@ -477,8 +480,10 @@ CREATE TABLE medias (
   created_at       TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT chk_media_source CHECK (filename IS NOT NULL OR video_url IS NOT NULL)
 );
-CREATE INDEX idx_media_dest  ON medias(destination_id);
-CREATE INDEX idx_media_hotel ON medias(hotel_id);
+CREATE INDEX idx_media_dest    ON medias(destination_id);
+CREATE INDEX idx_media_hotel   ON medias(hotel_id);
+CREATE INDEX idx_media_program ON medias(program_id);
+CREATE INDEX idx_media_post    ON medias(post_id);
 
 -- ─── Shop ─────────────────────────────────────────────────────────────────────
 CREATE TABLE shop_categories (
@@ -514,6 +519,10 @@ CREATE TABLE shop_products (
   review_count     INTEGER DEFAULT 0,
   created_at       TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE medias ADD CONSTRAINT fk_medias_product_id
+  FOREIGN KEY (product_id) REFERENCES shop_products(id) ON DELETE SET NULL;
+CREATE INDEX idx_media_product ON medias(product_id);
 
 CREATE TABLE shop_orders (
   id           SERIAL PRIMARY KEY,
@@ -567,7 +576,7 @@ CREATE TABLE orders (
   payment_status  VARCHAR(20) NOT NULL DEFAULT 'pending',
   subtotal        NUMERIC(12,2) NOT NULL DEFAULT 0,
   total           NUMERIC(12,2) NOT NULL DEFAULT 0,
-  currency        VARCHAR(3) NOT NULL DEFAULT 'MAD',
+  currency        VARCHAR(3) NOT NULL DEFAULT 'EUR',
   notes           TEXT,
   created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()

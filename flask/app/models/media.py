@@ -9,6 +9,9 @@ class Media(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     destination_id = db.Column(db.Integer, db.ForeignKey("destinations.id"))
     hotel_id = db.Column(db.Integer, db.ForeignKey("hotels.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("shop_products.id"))
+    program_id = db.Column(db.Integer, db.ForeignKey("travel_programs.id"))
+    post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
 
     filename = db.Column(db.String(255), nullable=True)   # nullable when video_url is used
     original_name = db.Column(db.String(255))

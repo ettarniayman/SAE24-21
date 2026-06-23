@@ -62,6 +62,7 @@ class BlogPost(db.Model):
 
     tags = db.relationship("BlogTag", secondary=post_tags, backref="posts", lazy="dynamic")
     author = db.relationship("User", backref="blog_posts", foreign_keys=[author_id])
+    medias = db.relationship("Media", backref="post", lazy="dynamic", foreign_keys="Media.post_id")
 
     def publish(self):
         self.is_published = True

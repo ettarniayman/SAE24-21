@@ -159,35 +159,6 @@ if (countdown) {
   setInterval(tick, 1000);
 }
 
-/* ─── Intersection observer for scroll animations ─── */
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      observer.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.12 });
-document.querySelectorAll('.card, .stat-item, .s-title, .gold-div').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(20px)';
-  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-  observer.observe(el);
-});
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.visible').forEach(el => {
-    el.style.opacity = '1';
-    el.style.transform = 'none';
-  });
-});
-/* patch: once visible add style immediately */
-const origObserve = observer.observe.bind(observer);
-IntersectionObserver.prototype.observe = function(el) { origObserve(el); };
-document.querySelectorAll('.card.visible, .visible').forEach(el => {
-  el.style.opacity = '1';
-  el.style.transform = 'none';
-});
-
 /* ─── Newsletter form inline feedback ─── */
 document.querySelectorAll('.newsletter-form').forEach(form => {
   form.addEventListener('submit', async (e) => {

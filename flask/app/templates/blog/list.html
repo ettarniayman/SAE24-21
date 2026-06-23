@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Blog Voyage — RT Voyage{% endblock %}
+{% block title %}{% if current_lang=='fr' %}Blog Voyage{% else %}Travel Blog{% endif %} — RT Voyage{% endblock %}
 
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Blog</span></nav>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><span>Blog</span></nav>
     <h1 class="page-hero__title">{% if current_lang=='en' %}Travel Blog{% else %}Blog Voyage{% endif %}</h1>
-    <p class="page-hero__sub">Conseils, inspirations et récits de voyages</p>
+    <p class="page-hero__sub">{% if current_lang=='fr' %}Conseils, inspirations et récits de voyages{% else %}Tips, inspiration and travel stories{% endif %}</p>
   </div>
 </div>
 
@@ -14,11 +14,11 @@
   <div class="container">
     <div class="filter-bar">
       <form method="GET" style="display:contents;">
-        <input type="text" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="Rechercher un article…" style="min-width:200px;max-width:300px;">
+        <input type="text" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="{% if current_lang=='fr' %}Rechercher un article…{% else %}Search an article…{% endif %}" style="min-width:200px;max-width:300px;">
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <a href="{{ url_for('blog.list_posts') }}" class="btn btn-sm {{ 'btn-gold' if not request.args.get('category') else 'btn-ghost' }}">Tous</a>
+          <a href="{{ url_for('blog.list_posts') }}" class="btn btn-sm {{ 'btn-gold' if not request.args.get('category') else 'btn-ghost' }}">{% if current_lang=='fr' %}Tous{% else %}All{% endif %}</a>
           {% for cat in categories %}
-          <a href="{{ url_for('blog.list_posts', category=cat.slug) }}" class="btn btn-sm {{ 'btn-gold' if request.args.get('category')==cat.slug else 'btn-ghost' }}">{{ cat.name_fr }}</a>
+          <a href="{{ url_for('blog.list_posts', category=cat.slug) }}" class="btn btn-sm {{ 'btn-gold' if request.args.get('category')==cat.slug else 'btn-ghost' }}">{{ cat.name_fr if current_lang=='fr' else cat.name_en or cat.name_fr }}</a>
           {% endfor %}
         </div>
         <button type="submit" class="btn btn-ghost btn-sm" style="display:none;"></button>
@@ -29,14 +29,14 @@
     <a href="{{ url_for('blog.post_detail', slug=featured_post.slug) }}" style="text-decoration:none;display:block;margin-top:32px;margin-bottom:40px;" class="card">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;overflow:hidden;border-radius:var(--radius-md);">
         <div style="height:360px;overflow:hidden;">
-          <img src="{{ featured_post.image or url_for('static',filename='images/blog-placeholder.jpg') }}" alt="{{ featured_post.title_fr }}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform=''">
+          <img src="{{ (featured_post.image_main if featured_post.image_main.startswith('http') or featured_post.image_main.startswith('/') else url_for('static', filename='images/uploads/' ~ featured_post.image_main)) if featured_post.image_main else url_for('static',filename='images/blog-placeholder.jpg') }}" alt="{{ (featured_post.title_fr if current_lang=='fr' else featured_post.title_en) or featured_post.title_fr }}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform=''">
         </div>
         <div style="padding:40px;display:flex;flex-direction:column;justify-content:center;">
           <span class="badge badge-gold" style="align-self:flex-start;margin-bottom:14px;">{{ 'À la une' if current_lang=='fr' else 'Featured' }}</span>
-          <p style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-sub);margin-bottom:8px;">{{ featured_post.category.name_fr if featured_post.category else '' }} · {{ featured_post.published_at.strftime('%d %b %Y') if featured_post.published_at else '' }}</p>
+          <p style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-sub);margin-bottom:8px;">{{ (featured_post.category.name_fr if current_lang=='fr' else featured_post.category.name_en or featured_post.category.name_fr) if featured_post.category else '' }} · {{ featured_post.published_at.strftime('%d %b %Y') if featured_post.published_at else '' }}</p>
           <h2 style="font-family:var(--font-serif);font-size:1.8rem;color:var(--text-light);font-weight:700;line-height:1.3;margin-bottom:16px;">{{ (featured_post.title_fr if current_lang=='fr' else featured_post.title_en) or featured_post.title_fr }}</h2>
           <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.7;margin-bottom:24px;">{{ (featured_post.excerpt_fr if current_lang=='fr' else featured_post.excerpt_en) or '' | truncate(200) }}</p>
-          <span class="btn btn-outline" style="align-self:flex-start;">Lire l'article <i class="fa fa-arrow-right"></i></span>
+          <span class="btn btn-outline" style="align-self:flex-start;">{% if current_lang=='fr' %}Lire l'article{% else %}Read article{% endif %} <i class="fa fa-arrow-right"></i></span>
         </div>
       </div>
     </a>
@@ -47,11 +47,11 @@
       {% if post != featured_post %}
       <a href="{{ url_for('blog.post_detail', slug=post.slug) }}" class="card" style="text-decoration:none;display:block;overflow:hidden;transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
         <div style="height:200px;overflow:hidden;">
-          <img src="{{ post.image or url_for('static',filename='images/blog-placeholder.jpg') }}" alt="{{ post.title_fr }}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+          <img src="{{ (post.image_main if post.image_main.startswith('http') or post.image_main.startswith('/') else url_for('static', filename='images/uploads/' ~ post.image_main)) if post.image_main else url_for('static',filename='images/blog-placeholder.jpg') }}" alt="{{ (post.title_fr if current_lang=='fr' else post.title_en) or post.title_fr }}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
         </div>
         <div style="padding:20px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <span style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);">{{ post.category.name_fr if post.category else '—' }}</span>
+            <span style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);">{{ (post.category.name_fr if current_lang=='fr' else post.category.name_en or post.category.name_fr) if post.category else '—' }}</span>
             <span style="font-size:0.72rem;color:var(--text-sub);">{{ post.published_at.strftime('%d/%m/%Y') if post.published_at else '' }}</span>
           </div>
           <h3 style="font-family:var(--font-serif);font-size:1.15rem;color:var(--text-light);font-weight:700;line-height:1.4;margin-bottom:10px;">{{ (post.title_fr if current_lang=='fr' else post.title_en) or post.title_fr }}</h3>
@@ -67,7 +67,7 @@
       </a>
       {% endif %}
       {% else %}
-      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">Aucun article disponible.</p>
+      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">{% if current_lang=='fr' %}Aucun article disponible.{% else %}No articles available.{% endif %}</p>
       {% endfor %}
     </div>
     {% include 'partials/_pagination.html' %}

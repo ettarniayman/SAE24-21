@@ -1,0 +1,87 @@
+{% extends "admin/base.html" %}
+{% block title %}Surveillance Caméra — Admin{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Surveillance Caméra</h1>
+  <a href="{{ url_for('admin.rapport_camera') }}" class="btn btn-sm">
+    <i class="fa fa-rotate"></i> Rafraîchir
+  </a>
+</div>
+
+<div class="admin-box" style="margin-bottom:24px;">
+  <div class="admin-box__header"><span class="admin-box__title"><i class="fa fa-user-check"></i> Présences actuelles ({{ presence|length }})</span></div>
+  <div class="admin-box__body" style="padding:0;">
+    {% for name, data in presence.items() %}
+    <div style="padding:14px 22px;border-bottom:1px solid var(--border-dark);display:flex;justify-content:space-between;align-items:center;">
+      <strong style="font-size:0.86rem;">{{ name }}</strong>
+      <span style="font-size:0.78rem;color:var(--text-sub);">{{ data.camera }} — vu à {{ data.derniere_vue }}</span>
+    </div>
+    {% else %}
+    <p style="padding:24px;text-align:center;color:var(--text-sub);">Personne détecté actuellement</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="admin-box" style="margin-bottom:24px;">
+  <div class="admin-box__header"><span class="admin-box__title" style="color:#e74c3c;"><i class="fa fa-triangle-exclamation"></i> Alertes intrus ({{ intrus|length }})</span></div>
+  <div class="admin-box__body" style="padding:0;">
+    {% for fichier in intrus %}
+    <div style="padding:10px 22px;border-bottom:1px solid var(--border-dark);font-size:0.82rem;color:var(--text-muted);">
+      <i class="fa fa-image"></i> {{ fichier }}
+    </div>
+    {% else %}
+    <p style="padding:24px;text-align:center;color:var(--text-sub);">Aucune alerte</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% if heatmap %}
+<div class="admin-box" style="margin-bottom:24px;">
+  <div class="admin-box__header"><span class="admin-box__title"><i class="fa fa-chart-simple"></i> Carte de chaleur des passages</span></div>
+  <div class="admin-box__body">
+    {% set max_count = heatmap.values()|list|max if heatmap.values()|list else 1 %}
+    {% for heure in heatmap.keys()|sort %}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <span style="width:48px;font-size:0.76rem;color:var(--text-sub);">{{ heure }}h</span>
+      <div style="flex:1;background:var(--bg-card);border-radius:4px;overflow:hidden;">
+        <div style="width:{{ (heatmap[heure] / max_count * 100) if max_count else 0 }}%;background:var(--gold);height:14px;"></div>
+      </div>
+      <span style="width:30px;font-size:0.76rem;color:var(--text-sub);text-align:right;">{{ heatmap[heure] }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="admin-box">
+  <div class="admin-box__header"><span class="admin-box__title"><i class="fa fa-list"></i> Journal des événements (50 derniers)</span></div>
+  <div class="admin-box__body" style="padding:0;overflow-x:auto;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Heure</th>
+          <th>Nom</th>
+          <th>Caméra</th>
+          <th>Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in entries %}
+        <tr>
+          <td style="font-size:0.78rem;color:var(--text-sub);">{{ e.date }}</td>
+          <td style="font-size:0.78rem;color:var(--text-sub);">{{ e.heure }}</td>
+          <td style="font-weight:600;font-size:0.86rem;">{{ e.nom_prenom }}</td>
+          <td style="font-size:0.84rem;color:var(--text-muted);">{{ e.camera if e.camera is defined else '—' }}</td>
+          <td><span class="badge {{ 'badge-danger' if e.type == 'intrus' else 'badge-success' }}">{{ e.type if e.type is defined else 'reconnu' }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--text-sub);padding:24px;">Aucun événement enregistré</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p style="font-size:0.74rem;color:var(--text-sub);margin-top:16px;">Généré le {{ generated_at }}</p>
+{% endblock %}

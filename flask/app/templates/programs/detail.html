@@ -6,9 +6,9 @@
 {# Hero #}
 <div class="dest-hero" style="height:55vh;">
   {% if program.image_main %}
-    <img class="dest-hero__img" src="{{ url_for('static', filename='images/uploads/' ~ program.image_main) }}" alt="{{ program.name_fr }}">
+    <img class="dest-hero__img" src="{{ program.image_main if program.image_main.startswith('http') or program.image_main.startswith('/') else url_for('static', filename='images/uploads/' ~ program.image_main) }}" alt="{{ program.name_fr if current_lang=='fr' else program.name_en or program.name_fr }}">
   {% else %}
-    <div class="dest-hero__img" style="background:var(--bg-card2);"></div>
+    <img class="dest-hero__img" src="{{ url_for('static', filename='images/placeholder-prog.jpg') }}" alt="{{ program.name_fr if current_lang=='fr' else program.name_en or program.name_fr }}">
   {% endif %}
   <div class="dest-hero__overlay"></div>
   <div class="dest-hero__content">
@@ -17,7 +17,7 @@
       <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
       <a href="{{ url_for('programs.list_programs') }}" style="color:rgba(255,255,255,0.6);">{% if current_lang=='fr' %}Programmes{% else %}Programs{% endif %}</a>
       <span class="breadcrumb__sep"><i class="fa fa-chevron-right"></i></span>
-      <span class="breadcrumb__current">{{ program.name_fr }}</span>
+      <span class="breadcrumb__current">{{ program.name_fr if current_lang=='fr' else program.name_en or program.name_fr }}</span>
     </nav>
     {% if program.theme %}
       <p class="dest-hero__country"><i class="fa fa-tag"></i> {{ program.theme | title }}</p>
@@ -41,40 +41,60 @@
 
     <div>
       {# Description #}
-      {% if program.description_fr %}
+      {% set description = program.description_fr if current_lang=='fr' else program.description_en or program.description_fr %}
+      {% if description %}
       <section style="margin-bottom:48px;">
         <span class="s-tag">{% if current_lang=='fr' %}Le voyage{% else %}The trip{% endif %}</span>
         <h2 style="font-family:var(--font-serif);font-size:2rem;margin:8px 0 16px;">
           {% if current_lang=='fr' %}À propos de ce <em style="color:var(--gold)">programme</em>{% else %}About this <em style="color:var(--gold)">program</em>{% endif %}
         </h2>
         <div class="gold-div" style="margin:0 0 20px;"></div>
-        <p style="font-size:0.94rem;color:var(--text-muted);line-height:1.9;">{{ program.description_fr }}</p>
+        <p style="font-size:0.94rem;color:var(--text-muted);line-height:1.9;">{{ description }}</p>
+      </section>
+      {% endif %}
+
+      {# Galerie #}
+      {% if program.medias.count() %}
+      <section style="margin-bottom:48px;">
+        <span class="s-tag">{% if current_lang=='fr' %}Photos{% else %}Photos{% endif %}</span>
+        <h2 style="font-family:var(--font-serif);font-size:2rem;margin:8px 0 20px;">
+          {% if current_lang=='fr' %}Galerie <em style="color:var(--gold)">photos</em>{% else %}Photo <em style="color:var(--gold)">gallery</em>{% endif %}
+        </h2>
+        <div class="gallery-grid" id="programGallery">
+          {% for media in program.medias %}
+          <a href="{{ media.file_path }}" class="gallery-item" data-fancybox="program">
+            <img src="{{ media.file_path }}" alt="{{ media.title_fr or program.name_fr }}" loading="lazy">
+          </a>
+          {% endfor %}
+        </div>
       </section>
       {% endif %}
 
       {# Inclus / Non inclus #}
-      {% if program.includes_fr or program.excludes_fr %}
+      {% set includes = program.includes_fr if current_lang=='fr' else program.includes_en or program.includes_fr %}
+      {% set excludes = program.excludes_fr if current_lang=='fr' else program.excludes_en or program.excludes_fr %}
+      {% if includes or excludes %}
       <section style="margin-bottom:48px;">
         <div class="grid grid-2">
-          {% if program.includes_fr %}
+          {% if includes %}
           <div class="card" style="padding:22px;">
             <h3 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--success);margin-bottom:14px;">
               <i class="fa fa-circle-check"></i> {% if current_lang=='fr' %}Inclus{% else %}Included{% endif %}
             </h3>
             <ul style="display:flex;flex-direction:column;gap:8px;">
-              {% for line in program.includes_fr.split('\n') if line.strip() %}
+              {% for line in includes.split('\n') if line.strip() %}
                 <li style="font-size:0.84rem;color:var(--text-muted);display:flex;gap:8px;"><span style="color:var(--success);">✓</span> {{ line.strip() }}</li>
               {% endfor %}
             </ul>
           </div>
           {% endif %}
-          {% if program.excludes_fr %}
+          {% if excludes %}
           <div class="card" style="padding:22px;">
             <h3 style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent-red);margin-bottom:14px;">
               <i class="fa fa-circle-xmark"></i> {% if current_lang=='fr' %}Non inclus{% else %}Not included{% endif %}
             </h3>
             <ul style="display:flex;flex-direction:column;gap:8px;">
-              {% for line in program.excludes_fr.split('\n') if line.strip() %}
+              {% for line in excludes.split('\n') if line.strip() %}
                 <li style="font-size:0.84rem;color:var(--text-muted);display:flex;gap:8px;"><span style="color:var(--accent-red);">✗</span> {{ line.strip() }}</li>
               {% endfor %}
             </ul>
@@ -116,8 +136,9 @@
                 <p style="font-size:0.88rem;color:var(--text-muted);">{{ day.evening_fr if current_lang=='fr' else day.evening_en or day.evening_fr }}</p>
               </div>
               {% endif %}
-              {% if day.description_fr and not (day.morning_fr or day.afternoon_fr or day.evening_fr) %}
-                <p style="font-size:0.88rem;color:var(--text-muted);">{{ day.description_fr }}</p>
+              {% set day_desc = day.description_fr if current_lang=='fr' else day.description_en or day.description_fr %}
+              {% if day_desc and not (day.morning_fr or day.afternoon_fr or day.evening_fr) %}
+                <p style="font-size:0.88rem;color:var(--text-muted);">{{ day_desc }}</p>
               {% endif %}
               {% if day.accommodation or day.meals_included %}
               <div class="timeline-day__meals">
@@ -177,7 +198,7 @@
             <i class="fa fa-cart-plus"></i> {% if current_lang=='fr' %}Ajouter au panier{% else %}Add to cart{% endif %}
           </button>
         </form>
-        <a href="{{ url_for('contact.index') }}?sujet=information&programme={{ program.name_fr | urlencode }}" class="btn btn-outline" style="width:100%;justify-content:center;">
+        <a href="{{ url_for('contact.index') }}?sujet=information&programme={{ (program.name_fr if current_lang=='fr' else program.name_en or program.name_fr) | urlencode }}" class="btn btn-outline" style="width:100%;justify-content:center;">
           <i class="fa fa-question-circle"></i> {% if current_lang=='fr' %}Demander un devis{% else %}Request a quote{% endif %}
         </a>
       </div>
@@ -187,7 +208,7 @@
         <ul style="display:flex;flex-direction:column;gap:12px;">
           <li style="display:flex;justify-content:space-between;font-size:0.84rem;">
             <span style="color:var(--text-muted);"><i class="fa fa-calendar-days" style="color:var(--gold);width:18px;"></i> {% if current_lang=='fr' %}Durée{% else %}Duration{% endif %}</span>
-            <strong>{{ program.duration_days }}j</strong>
+            <strong>{{ program.duration_days }}{% if current_lang=='fr' %}j{% else %}d{% endif %}</strong>
           </li>
           <li style="display:flex;justify-content:space-between;font-size:0.84rem;">
             <span style="color:var(--text-muted);"><i class="fa fa-users" style="color:var(--gold);width:18px;"></i> {% if current_lang=='fr' %}Groupe{% else %}Group{% endif %}</span>
@@ -196,7 +217,17 @@
           {% if program.difficulty %}
           <li style="display:flex;justify-content:space-between;font-size:0.84rem;">
             <span style="color:var(--text-muted);"><i class="fa fa-gauge" style="color:var(--gold);width:18px;"></i> {% if current_lang=='fr' %}Difficulté{% else %}Difficulty{% endif %}</span>
-            <span class="badge badge-gold">{{ program.difficulty | title }}</span>
+            <span class="badge badge-gold">
+              {% if program.difficulty == 'easy' %}
+                {% if current_lang=='fr' %}Facile{% else %}Easy{% endif %}
+              {% elif program.difficulty == 'medium' %}
+                {% if current_lang=='fr' %}Modéré{% else %}Medium{% endif %}
+              {% elif program.difficulty == 'hard' %}
+                {% if current_lang=='fr' %}Difficile{% else %}Hard{% endif %}
+              {% else %}
+                {{ program.difficulty | title }}
+              {% endif %}
+            </span>
           </li>
           {% endif %}
           {% if program.departure_city %}

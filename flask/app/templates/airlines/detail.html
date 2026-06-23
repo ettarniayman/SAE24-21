@@ -4,18 +4,18 @@
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><a href="{{ url_for('airlines.list_airlines') }}">Compagnies</a><span>/</span><span>{{ airline.name }}</span></nav>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><a href="{{ url_for('airlines.list_airlines') }}">{% if current_lang=='fr' %}Compagnies{% else %}Airlines{% endif %}</a><span>/</span><span>{{ airline.name }}</span></nav>
     <div style="display:flex;align-items:center;gap:24px;margin-top:20px;flex-wrap:wrap;">
       <div style="width:90px;height:90px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;overflow:hidden;">
         {% if airline.logo %}
-          <img src="{{ airline.logo }}" alt="{{ airline.name }}" style="max-width:80px;max-height:80px;object-fit:contain;">
+          <img src="{{ airline.logo if airline.logo.startswith('http') or airline.logo.startswith('/') else url_for('static', filename='images/uploads/' ~ airline.logo) }}" alt="{{ airline.name }}" style="max-width:80px;max-height:80px;object-fit:contain;">
         {% else %}
           <span style="font-size:1.5rem;font-weight:700;color:var(--bg-deep);">{{ airline.iata_code }}</span>
         {% endif %}
       </div>
       <div>
         <h1 class="page-hero__title" style="margin:0;">{{ airline.name }}</h1>
-        {% if airline.is_partner %}<span class="badge badge-gold" style="margin-top:8px;display:inline-block;">Compagnie Partenaire</span>{% endif %}
+        {% if airline.is_partner %}<span class="badge badge-gold" style="margin-top:8px;display:inline-block;">{% if current_lang=='fr' %}Compagnie Partenaire{% else %}Partner Airline{% endif %}</span>{% endif %}
       </div>
     </div>
   </div>
@@ -26,9 +26,14 @@
     <div style="display:grid;grid-template-columns:1fr 300px;gap:40px;align-items:start;">
       <div>
         <div class="card" style="padding:32px;margin-bottom:24px;">
-          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:20px;">Informations bagages</h2>
+          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:20px;">{% if current_lang=='fr' %}Informations bagages{% else %}Baggage information{% endif %}</h2>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-            {% for label, val, ico in [('Bagage cabine', (airline.baggage_cabin_kg|string ~ ' kg') if airline.baggage_cabin_kg else '—', 'fa-shopping-bag'), ('Bagage soute', (airline.baggage_hold_kg|string ~ ' kg') if airline.baggage_hold_kg else '—', 'fa-suitcase-rolling'), ('Business Class', 'Disponible' if airline.has_business_class else 'Non disponible', 'fa-business-time'), ('Première Classe', 'Disponible' if airline.has_first_class else 'Non disponible', 'fa-crown')] %}
+            {% if current_lang=='fr' %}
+            {% set labels = [('Bagage cabine', (airline.baggage_cabin_kg|string ~ ' kg') if airline.baggage_cabin_kg else '—', 'fa-shopping-bag'), ('Bagage soute', (airline.baggage_hold_kg|string ~ ' kg') if airline.baggage_hold_kg else '—', 'fa-suitcase-rolling'), ('Business Class', 'Disponible' if airline.has_business_class else 'Non disponible', 'fa-business-time'), ('Première Classe', 'Disponible' if airline.has_first_class else 'Non disponible', 'fa-crown')] %}
+            {% else %}
+            {% set labels = [('Cabin baggage', (airline.baggage_cabin_kg|string ~ ' kg') if airline.baggage_cabin_kg else '—', 'fa-shopping-bag'), ('Checked baggage', (airline.baggage_hold_kg|string ~ ' kg') if airline.baggage_hold_kg else '—', 'fa-suitcase-rolling'), ('Business Class', 'Available' if airline.has_business_class else 'Not available', 'fa-business-time'), ('First Class', 'Available' if airline.has_first_class else 'Not available', 'fa-crown')] %}
+            {% endif %}
+            {% for label, val, ico in labels %}
             <div style="padding:20px;background:var(--bg-card2);border-radius:var(--radius-sm);border:1px solid var(--border-dark);display:flex;align-items:center;gap:12px;">
               <i class="fa {{ ico }}" style="font-size:1.1rem;color:var(--gold);"></i>
               <div>
@@ -42,17 +47,17 @@
 
         {% if promotions %}
         <div class="card" style="padding:32px;">
-          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:20px;">Promotions de vols</h2>
+          <h2 style="font-family:var(--font-serif);font-size:1.5rem;color:var(--gold);margin-bottom:20px;">{% if current_lang=='fr' %}Promotions de vols{% else %}Flight deals{% endif %}</h2>
           <div style="display:flex;flex-direction:column;gap:12px;">
             {% for promo in promotions %}
             <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--bg-card2);border-radius:var(--radius-sm);border:1px solid var(--gold-border);">
               <div>
                 <p style="font-size:0.92rem;font-weight:700;color:var(--text-light);">{{ promo.origin }} <i class="fa fa-long-arrow-alt-right" style="color:var(--gold);margin:0 6px;"></i> {{ promo.destination }}</p>
-                {% if promo.valid_until %}<p style="font-size:0.72rem;color:var(--text-sub);">Valable jusqu'au {{ promo.valid_until.strftime('%d/%m/%Y') }}</p>{% endif %}
+                {% if promo.valid_until %}<p style="font-size:0.72rem;color:var(--text-sub);">{% if current_lang=='fr' %}Valable jusqu'au{% else %}Valid until{% endif %} {{ promo.valid_until.strftime('%d/%m/%Y') }}</p>{% endif %}
               </div>
               <div style="text-align:right;">
                 <p style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);font-weight:700;">{{ promo.price_from }}</p>
-                <p style="font-size:0.68rem;color:var(--text-sub);">MAD A/R</p>
+                <p style="font-size:0.68rem;color:var(--text-sub);">€ {% if current_lang=='fr' %}A/R{% else %}round trip{% endif %}</p>
               </div>
             </div>
             {% endfor %}
@@ -63,19 +68,19 @@
 
       <div style="position:sticky;top:90px;">
         <div class="card" style="padding:28px;margin-bottom:16px;">
-          <h3 style="font-family:var(--font-serif);font-size:1.2rem;color:var(--gold);margin-bottom:16px;">Code IATA</h3>
+          <h3 style="font-family:var(--font-serif);font-size:1.2rem;color:var(--gold);margin-bottom:16px;">{% if current_lang=='fr' %}Code IATA{% else %}IATA Code{% endif %}</h3>
           <p style="font-family:monospace;font-size:2rem;color:var(--text-light);font-weight:700;">{{ airline.iata_code }}</p>
-          {% if airline.alliance %}<p style="font-size:0.78rem;color:var(--text-sub);margin-top:8px;">Alliance : {{ airline.alliance }}</p>{% endif %}
+          {% if airline.alliance %}<p style="font-size:0.78rem;color:var(--text-sub);margin-top:8px;">{% if current_lang=='fr' %}Alliance{% else %}Alliance{% endif %} : {{ airline.alliance }}</p>{% endif %}
         </div>
         <div class="card" style="padding:28px;">
-          <h3 style="font-family:var(--font-serif);font-size:1.2rem;color:var(--gold);margin-bottom:14px;">Réserver un vol</h3>
+          <h3 style="font-family:var(--font-serif);font-size:1.2rem;color:var(--gold);margin-bottom:14px;">{% if current_lang=='fr' %}Réserver un vol{% else %}Book a flight{% endif %}</h3>
           {% if airline.website %}
           <a href="{{ airline.website }}" target="_blank" rel="noopener" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:10px;">
-            <i class="fa fa-external-link-alt"></i> Site officiel
+            <i class="fa fa-external-link-alt"></i> {% if current_lang=='fr' %}Site officiel{% else %}Official website{% endif %}
           </a>
           {% endif %}
           <a href="{{ url_for('contact.index') }}" class="btn btn-outline" style="width:100%;justify-content:center;">
-            <i class="fa fa-envelope"></i> Demande devis
+            <i class="fa fa-envelope"></i> {% if current_lang=='fr' %}Demande devis{% else %}Request a quote{% endif %}
           </a>
         </div>
       </div>

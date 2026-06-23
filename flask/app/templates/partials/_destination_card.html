@@ -3,18 +3,15 @@
   <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" aria-label="{{ dest.get_name(current_lang) }}">
     <div class="dest-card__img">
       {% if dest.image_main %}
-        {% if dest.image_main.startswith('http') %}
-          <img src="{{ dest.image_main }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
-        {% else %}
-        <img src="{{ dest.image_main }}">
-        {% endif %}
+        {% set img_src = dest.image_main if dest.image_main.startswith('http') or dest.image_main.startswith('/') else url_for('static', filename='images/destinations/' ~ dest.image_main) %}
+        <img src="{{ img_src }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
       {% else %}
         <img src="{{ url_for('static', filename='images/placeholder-dest.jpg') }}"
              alt="{{ dest.get_name(current_lang) }}" loading="lazy">
       {% endif %}
       <div class="dest-card__overlay"></div>
       <span class="dest-card__badge">{{ dest.destination_type | title }}</span>
-      <span class="dest-card__country">{{ dest.country.flag_emoji if dest.country and dest.country.flag_emoji else '' }} {{ dest.country.name_fr if dest.country else '' }}</span>
+      <span class="dest-card__country">{{ dest.country.flag_emoji if dest.country and dest.country.flag_emoji else '' }} {{ dest.country.name_fr if current_lang=='fr' else dest.country.name_en if dest.country else '' }}</span>
     </div>
   </a>
   <div class="dest-card__body">

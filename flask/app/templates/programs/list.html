@@ -26,9 +26,9 @@
 
     <div class="filter-toggle" role="group" aria-label="Durée">
       <button type="submit" name="duration" value="" class="{{ 'active' if not current_duration }}">{% if current_lang=='fr' %}Toutes durées{% else %}All durations{% endif %}</button>
-      <button type="submit" name="duration" value="short" class="{{ 'active' if current_duration=='short' }}">≤ 5j</button>
-      <button type="submit" name="duration" value="medium" class="{{ 'active' if current_duration=='medium' }}">6–10j</button>
-      <button type="submit" name="duration" value="long" class="{{ 'active' if current_duration=='long' }}">10j+</button>
+      <button type="submit" name="duration" value="short" class="{{ 'active' if current_duration=='short' }}">{% if current_lang=='fr' %}≤ 5j{% else %}≤ 5d{% endif %}</button>
+      <button type="submit" name="duration" value="medium" class="{{ 'active' if current_duration=='medium' }}">{% if current_lang=='fr' %}6–10j{% else %}6–10d{% endif %}</button>
+      <button type="submit" name="duration" value="long" class="{{ 'active' if current_duration=='long' }}">{% if current_lang=='fr' %}10j+{% else %}10d+{% endif %}</button>
     </div>
 
     <div style="display:flex;align-items:center;gap:8px;">

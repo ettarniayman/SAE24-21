@@ -1,26 +1,34 @@
 {% extends "base.html" %}
-{% block title %}{{ country.name_fr }} — Destinations RT Voyage{% endblock %}
+{% block title %}{{ country.name_fr if current_lang=='fr' else country.name_en or country.name_fr }} — RT Voyage{% endblock %}
 
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><a href="{{ url_for('destinations.list_destinations') }}">Destinations</a><span>/</span><span>{{ country.name_fr }}</span></nav>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><a href="{{ url_for('destinations.list_destinations') }}">Destinations</a><span>/</span><span>{{ country.name_fr if current_lang=='fr' else country.name_en or country.name_fr }}</span></nav>
     <h1 class="page-hero__title">
-      <span style="font-size:1.5em;margin-right:12px;">{{ country.flag_emoji or '' }}</span>{{ country.name_fr if current_lang=='fr' else country.name_en }}
+      <span style="font-size:1.5em;margin-right:12px;">{{ country.flag_emoji or '' }}</span>{{ country.name_fr if current_lang=='fr' else country.name_en or country.name_fr }}
     </h1>
-    <p class="page-hero__sub">{{ destinations | length }} destination{{ 's' if destinations|length > 1 }} à explorer</p>
+    <p class="page-hero__sub">
+      {% if current_lang=='fr' %}{{ destinations | length }} destination{{ 's' if destinations|length > 1 }} à explorer
+      {% else %}{{ destinations | length }} destination{{ 's' if destinations|length > 1 }} to explore{% endif %}
+    </p>
   </div>
 </div>
 
 <section class="section">
   <div class="container">
-    {% if country.description %}
+    {% if country.capital or country.currency or country.language or country.continent %}
     <div style="max-width:800px;margin:0 auto 48px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:0.84rem;color:var(--text-muted);">
-        {% for lbl, val in [('Capitale', country.capital), ('Monnaie', (country.currency or '') ~ ' (' ~ (country.currency_code or '') ~ ')'), ('Langue', country.language), ('Continent', country.continent)] %}
+        {% for lbl_fr, lbl_en, val in [
+          ('Capitale', 'Capital', country.capital),
+          ('Monnaie', 'Currency', (country.currency or '') ~ ' (' ~ (country.currency_code or '') ~ ')'),
+          ('Langue', 'Language', country.language),
+          ('Continent', 'Continent', country.continent)
+        ] %}
         {% if val %}
         <div style="padding:14px;background:var(--bg-card);border:1px solid var(--border-dark);border-radius:var(--radius-sm);">
-          <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-sub);margin-bottom:4px;">{{ lbl }}</p>
+          <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-sub);margin-bottom:4px;">{{ lbl_fr if current_lang=='fr' else lbl_en }}</p>
           <p style="font-weight:600;color:var(--text-light);">{{ val }}</p>
         </div>
         {% endif %}
@@ -33,7 +41,7 @@
       {% for dest in destinations %}
         {% include 'partials/_destination_card.html' %}
       {% else %}
-      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">Aucune destination pour ce pays.</p>
+      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">{% if current_lang=='fr' %}Aucune destination pour ce pays.{% else %}No destinations for this country.{% endif %}</p>
       {% endfor %}
     </div>
   </div>

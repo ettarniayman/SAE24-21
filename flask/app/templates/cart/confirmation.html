@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Commande {{ order.reference }} — RT Voyage{% endblock %}
+{% block title %}{% if current_lang=='fr' %}Commande{% else %}Order{% endif %} {{ order.reference }} — RT Voyage{% endblock %}
 
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Confirmation</span></nav>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><span>{% if current_lang=='fr' %}Confirmation{% else %}Confirmation{% endif %}</span></nav>
     <h1 class="page-hero__title">{% if current_lang=='en' %}Order confirmed{% else %}Commande confirmée{% endif %}</h1>
   </div>
 </div>
@@ -12,17 +12,22 @@
 <section class="section">
   <div class="container" style="max-width:600px;text-align:center;">
     <i class="fa fa-circle-check" style="font-size:3rem;color:var(--success);margin-bottom:20px;"></i>
-    <h2 style="font-size:1.4rem;margin-bottom:8px;">Merci, {{ order.first_name }} !</h2>
+    <h2 style="font-size:1.4rem;margin-bottom:8px;">{% if current_lang=='fr' %}Merci, {{ order.first_name }} !{% else %}Thank you, {{ order.first_name }}!{% endif %}</h2>
     <p style="color:var(--text-muted);margin-bottom:24px;">
+      {% if current_lang=='fr' %}
       Votre commande <strong style="color:var(--gold);">{{ order.reference }}</strong> a bien été enregistrée.
       Un conseiller vous contactera prochainement pour finaliser le paiement.
+      {% else %}
+      Your order <strong style="color:var(--gold);">{{ order.reference }}</strong> has been successfully recorded.
+      An advisor will contact you shortly to finalise payment.
+      {% endif %}
     </p>
     <div class="card" style="padding:24px;text-align:left;margin-bottom:24px;">
-      <p style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Référence</span><strong>{{ order.reference }}</strong></p>
-      <p style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Statut</span><span class="badge badge-gold">{{ order.status }}</span></p>
+      <p style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>{% if current_lang=='fr' %}Référence{% else %}Reference{% endif %}</span><strong>{{ order.reference }}</strong></p>
+      <p style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>{% if current_lang=='fr' %}Statut{% else %}Status{% endif %}</span><span class="badge badge-gold">{{ order.status }}</span></p>
       <p style="display:flex;justify-content:space-between;"><span>Total</span><strong style="color:var(--gold);">{{ order.total }} {{ order.currency }}</strong></p>
     </div>
-    <a href="{{ url_for('main.index') }}" class="btn btn-gold">Retour à l'accueil</a>
+    <a href="{{ url_for('main.index') }}" class="btn btn-gold">{% if current_lang=='fr' %}Retour à l'accueil{% else %}Back to home{% endif %}</a>
   </div>
 </section>
 {% endblock %}

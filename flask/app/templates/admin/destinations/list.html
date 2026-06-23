@@ -25,7 +25,7 @@
           <td>
             <div style="display:flex;align-items:center;gap:10px;">
               {% if dest.image_main %}
-                <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="" style="width:44px;height:32px;object-fit:cover;border-radius:4px;">
+                <img src="{{ dest.image_main if dest.image_main.startswith('http') or dest.image_main.startswith('/') else url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="" style="width:44px;height:32px;object-fit:cover;border-radius:4px;">
               {% endif %}
               <div>
                 <p style="font-weight:600;font-size:0.88rem;">{{ dest.name_fr }}</p>

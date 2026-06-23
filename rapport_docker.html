@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="30">
+    <title>Dashboard Docker — RTVoyage</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f0f1a; color: #e0e0e0; padding: 30px; }
+        h1 { color: #B8860B; border-bottom: 3px solid #B8860B; padding-bottom: 12px; margin-bottom: 25px; font-size: 28px; }
+        h2 { color: #9CA3AF; margin: 25px 0 12px; font-size: 18px; }
+        .meta { color: #6B7280; font-size: 13px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; border-radius: 8px; overflow: hidden; }
+        th { background: #1F2937; padding: 14px 16px; text-align: left; color: #B8860B; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 12px 16px; border-bottom: 1px solid #1F2937; font-size: 14px; }
+        tr:hover td { background: #1F2937; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        footer { color: #4B5563; font-size: 12px; margin-top: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>🐳 Dashboard Infrastructure — RTVoyage Pépinière</h1>
+    <p class="meta">Généré le : <strong>2026-06-23 02:46:17</strong> &nbsp;|&nbsp; Auto-rafraîchissement toutes les 30 secondes</p>
+
+    <h2>📊 État des services</h2>
+    <table>
+        <thead><tr><th>Service</th><th>Conteneur</th><th>État</th><th>Démarré le</th></tr></thead>
+        <tbody>
+            <tr>
+                <td>web</td><td>rtvoyage_flask</td>
+                <td style="color:#28a745;font-weight:bold">RUNNING</td>
+                <td>2026-06-23T00:43</td>
+            </tr>
+            <tr>
+                <td>db</td><td>rtvoyage_postgres</td>
+                <td style="color:#28a745;font-weight:bold">RUNNING</td>
+                <td>2026-06-22T23:58</td>
+            </tr>
+            <tr>
+                <td>apache</td><td>rtvoyage_apache</td>
+                <td style="color:#28a745;font-weight:bold">RUNNING</td>
+                <td>2026-06-22T23:58</td>
+            </tr>
+            <tr>
+                <td>pgadmin</td><td>rtvoyage_pgadmin</td>
+                <td style="color:#28a745;font-weight:bold">RUNNING</td>
+                <td>2026-06-22T23:58</td>
+            </tr>
+            <tr>
+                <td>tftp</td><td>pepiniere_tftp</td>
+                <td style="color:#28a745;font-weight:bold">RUNNING</td>
+                <td>2026-06-22T23:58</td>
+            </tr></tbody>
+    </table>
+
+    <h2>📋 Historique des événements (20 derniers)</h2>
+    <table>
+        <thead><tr><th>Date/Heure</th><th>Service</th><th>Action</th><th>Résultat</th></tr></thead>
+        <tbody>
+        <tr>
+            <td>2026-06-23 02:43:45</td><td>web</td>
+            <td>RESTART</td>
+            <td style="color:#28a745">success</td>
+        </tr>
+        <tr>
+            <td>2026-06-23 02:43:40</td><td>db</td>
+            <td>BACKUP</td>
+            <td style="color:#dc3545">backup_20260623_024339.sql</td>
+        </tr>
+        <tr>
+            <td>2026-06-22 22:04:24</td><td>tftp</td>
+            <td>START</td>
+            <td style="color:#28a745">success</td>
+        </tr>
+        <tr>
+            <td>2026-06-22 22:04:15</td><td>tftp</td>
+            <td>STOP</td>
+            <td style="color:#dc3545">manual</td>
+        </tr>
+        <tr>
+            <td>2026-06-22 20:56:41</td><td>db</td>
+            <td>BACKUP</td>
+            <td style="color:#dc3545">backup_20260622_205640.sql</td>
+        </tr></tbody>
+    </table>
+
+    <footer>Projet SAE21/SAE24 — IUT de Béthune — BUT Réseaux & Télécommunications</footer>
+</body>
+</html>

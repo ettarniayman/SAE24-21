@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Erreur serveur — RT Voyage{% endblock %}
+{% block title %}{% if current_lang=='fr' %}Erreur serveur{% else %}Server error{% endif %} — RT Voyage{% endblock %}
 {% block content %}
 <section style="min-height:80vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:60px 20px;">
   <div>
     <p style="font-family:var(--font-serif);font-size:clamp(6rem,15vw,10rem);color:rgba(180,60,60,0.3);font-weight:700;line-height:1;letter-spacing:-0.04em;">500</p>
-    <h1 style="font-family:var(--font-serif);font-size:clamp(1.6rem,3vw,2.4rem);color:var(--text-light);margin:8px 0 16px;">Erreur interne</h1>
-    <p style="font-size:0.92rem;color:var(--text-sub);max-width:420px;margin:0 auto 36px;line-height:1.7;">Une erreur inattendue s'est produite. Notre équipe technique a été notifiée. Veuillez réessayer dans quelques instants.</p>
+    <h1 style="font-family:var(--font-serif);font-size:clamp(1.6rem,3vw,2.4rem);color:var(--text-light);margin:8px 0 16px;">{% if current_lang=='fr' %}Erreur interne{% else %}Internal error{% endif %}</h1>
+    <p style="font-size:0.92rem;color:var(--text-sub);max-width:420px;margin:0 auto 36px;line-height:1.7;">{% if current_lang=='fr' %}Une erreur inattendue s'est produite. Notre équipe technique a été notifiée. Veuillez réessayer dans quelques instants.{% else %}An unexpected error has occurred. Our technical team has been notified. Please try again shortly.{% endif %}</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-      <a href="{{ url_for('main.index') }}" class="btn btn-gold"><i class="fa fa-home"></i> Accueil</a>
-      <a href="{{ url_for('contact.index') }}" class="btn btn-outline"><i class="fa fa-envelope"></i> Nous contacter</a>
+      <a href="{{ url_for('main.index') }}" class="btn btn-gold"><i class="fa fa-home"></i> {% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a>
+      <a href="{{ url_for('contact.index') }}" class="btn btn-outline"><i class="fa fa-envelope"></i> {% if current_lang=='fr' %}Nous contacter{% else %}Contact us{% endif %}</a>
     </div>
   </div>
 </section>

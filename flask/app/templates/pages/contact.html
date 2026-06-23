@@ -16,7 +16,7 @@
 
       <div>
         <h2 style="font-family:var(--font-serif);font-size:1.9rem;color:var(--gold);margin-bottom:24px;">{% if current_lang=='en' %}Get in touch{% else %}Nos coordonnées{% endif %}</h2>
-        {% for icon, label, val in [('fa-map-marker-alt','Adresse','123 Rue Mohammed V, Casablanca, Maroc'),('fa-phone','Téléphone','+212 5 22 XX XX XX'),('fa-envelope','Email','contact@rtvoyage.ma'),('fa-clock','Horaires','Lun – Ven : 09h – 18h')] %}
+        {% for icon, label, val in [('fa-map-marker-alt','Adresse','1320 Rue de l\'Université, 62400 Béthune, France'),('fa-phone','Téléphone','+33 3 98 81 61 54'),('fa-envelope','Email','contactrtvoyage@gmail.com'),('fa-clock','Horaires','Lun – Ven : 09h – 18h')] %}
         <div style="display:flex;gap:16px;margin-bottom:24px;">
           <div style="width:44px;height:44px;border-radius:50%;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fa {{ icon }}" style="color:var(--gold);font-size:1rem;"></i>
@@ -66,7 +66,7 @@
             </div>
             <div class="form-group">
               <label class="form-label">{{ form.phone.label.text }}</label>
-              {{ form.phone(class='form-control', placeholder='+212 6 XX XX XX XX') }}
+              {{ form.phone(class='form-control', placeholder='+33 6 XX XX XX XX') }}
             </div>
           </div>
           <div class="form-group">

@@ -54,6 +54,7 @@ class TravelProgram(db.Model):
 
     days = db.relationship("ProgramDay", backref="program", lazy="dynamic", order_by="ProgramDay.day_number")
     bookings = db.relationship("Booking", backref="program", lazy="dynamic")
+    medias = db.relationship("Media", backref="program", lazy="dynamic", foreign_keys="Media.program_id")
 
     def __repr__(self):
         return f"<TravelProgram {self.name_fr}>"

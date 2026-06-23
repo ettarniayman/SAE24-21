@@ -3,11 +3,11 @@
   <a href="{{ url_for('programs.detail', slug=prog.slug) }}" aria-label="{{ prog.name_fr if current_lang=='fr' else prog.name_en or prog.name_fr }}">
     <div class="prog-card__img">
       {% if prog.image_main %}
-        <img src="{{ url_for('static', filename='images/uploads/' ~ prog.image_main) }}"
-             alt="{{ prog.name_fr }}" loading="lazy">
+        <img src="{{ prog.image_main if prog.image_main.startswith('http') or prog.image_main.startswith('/') else url_for('static', filename='images/uploads/' ~ prog.image_main) }}"
+             alt="{{ prog.name_fr if current_lang=='fr' else prog.name_en or prog.name_fr }}" loading="lazy">
       {% else %}
         <img src="{{ url_for('static', filename='images/placeholder-prog.jpg') }}"
-             alt="{{ prog.name_fr }}" loading="lazy">
+             alt="{{ prog.name_fr if current_lang=='fr' else prog.name_en or prog.name_fr }}" loading="lazy">
       {% endif %}
       {% if prog.theme %}
         <span class="prog-card__theme">{{ prog.theme | title }}</span>
@@ -28,7 +28,8 @@
       <span><i class="fa fa-users"></i> {{ prog.group_min }}–{{ prog.group_max }} {% if current_lang=='fr' %}pers.{% else %}pax{% endif %}</span>
     </div>
     <p class="prog-card__desc">
-      {{ prog.description_fr[:140] ~ '…' if prog.description_fr and prog.description_fr|length > 140 else prog.description_fr or '' }}
+      {% set desc = prog.description_fr if current_lang == 'fr' else prog.description_en or prog.description_fr %}
+      {{ desc[:140] ~ '…' if desc and desc|length > 140 else desc or '' }}
     </p>
     <div class="prog-card__footer">
       <div class="prog-card__price">

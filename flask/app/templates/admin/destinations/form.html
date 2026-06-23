@@ -134,7 +134,7 @@
             {{ form.image_main.label(class='form-label') }}
             {{ form.image_main(class='form-control') }}
             {% if dest and dest.image_main %}
-              <img src="{{ url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="" style="width:120px;margin-top:8px;border-radius:6px;">
+              <img src="{{ dest.image_main if dest.image_main.startswith('http') or dest.image_main.startswith('/') else url_for('static', filename='images/destinations/' ~ dest.image_main) }}" alt="" style="width:120px;margin-top:8px;border-radius:6px;">
             {% endif %}
           </div>
           <div class="form-row">

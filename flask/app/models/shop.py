@@ -46,6 +46,8 @@ class ShopProduct(db.Model):
     review_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    medias = db.relationship("Media", backref="product", lazy="dynamic", foreign_keys="Media.product_id")
+
     def __repr__(self):
         return f"<ShopProduct {self.name_fr}>"
 

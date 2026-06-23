@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Compagnies Aériennes — RT Voyage{% endblock %}
+{% block title %}{% if current_lang=='fr' %}Compagnies Aériennes{% else %}Airlines{% endif %} — RT Voyage{% endblock %}
 
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Compagnies</span></nav>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><span>{% if current_lang=='fr' %}Compagnies{% else %}Airlines{% endif %}</span></nav>
     <h1 class="page-hero__title">{% if current_lang=='en' %}Airline Partners{% else %}Nos Compagnies Aériennes{% endif %}</h1>
-    <p class="page-hero__sub">Les meilleures compagnies pour votre voyage</p>
+    <p class="page-hero__sub">{% if current_lang=='fr' %}Les meilleures compagnies pour votre voyage{% else %}The best airlines for your trip{% endif %}</p>
   </div>
 </div>
 
@@ -14,8 +14,8 @@
   <div class="container">
     {% if promotions %}
     <div style="margin-bottom:48px;">
-      <p class="s-tag">Vols en promotion</p>
-      <h2 class="s-title" style="text-align:left;font-size:1.6rem;">Offres Spéciales Vols</h2>
+      <p class="s-tag">{% if current_lang=='fr' %}Vols en promotion{% else %}Flight deals{% endif %}</p>
+      <h2 class="s-title" style="text-align:left;font-size:1.6rem;">{% if current_lang=='fr' %}Offres Spéciales Vols{% else %}Special Flight Offers{% endif %}</h2>
       <div class="gold-div"></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:24px;">
         {% for promo in promotions %}
@@ -26,8 +26,8 @@
             <p style="font-size:0.72rem;color:var(--text-sub);">{{ promo.airline.name if promo.airline else '' }}</p>
           </div>
           <div style="text-align:right;">
-            <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;">{{ promo.price_from }} <span style="font-size:0.7rem;font-family:var(--font-sans);">MAD</span></p>
-            {% if promo.valid_until %}<p style="font-size:0.68rem;color:var(--text-sub);">jusqu'au {{ promo.valid_until.strftime('%d/%m/%Y') }}</p>{% endif %}
+            <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;">{{ promo.price_from }} <span style="font-size:0.7rem;font-family:var(--font-sans);">€</span></p>
+            {% if promo.valid_until %}<p style="font-size:0.68rem;color:var(--text-sub);">{% if current_lang=='fr' %}jusqu'au{% else %}until{% endif %} {{ promo.valid_until.strftime('%d/%m/%Y') }}</p>{% endif %}
           </div>
         </div>
         {% endfor %}
@@ -40,7 +40,7 @@
       <a href="{{ url_for('airlines.detail', slug=airline.slug) }}" class="card" style="text-decoration:none;padding:28px;display:flex;gap:20px;align-items:flex-start;transition:transform 0.3s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
         <div style="width:72px;height:72px;border-radius:var(--radius-sm);background:var(--bg-card2);border:1px solid var(--gold-border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
           {% if airline.logo %}
-            <img src="{{ airline.logo }}" alt="{{ airline.name }}" style="max-width:64px;max-height:64px;object-fit:contain;">
+            <img src="{{ airline.logo if airline.logo.startswith('http') or airline.logo.startswith('/') else url_for('static', filename='images/uploads/' ~ airline.logo) }}" alt="{{ airline.name }}" style="max-width:64px;max-height:64px;object-fit:contain;">
           {% else %}
             <span style="font-size:1.1rem;font-weight:700;color:var(--gold);">{{ airline.iata_code }}</span>
           {% endif %}
@@ -48,18 +48,18 @@
         <div style="flex:1;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
             <h3 style="font-size:1rem;font-weight:700;color:var(--text-light);">{{ airline.name }}</h3>
-            {% if airline.is_partner %}<span class="badge badge-gold" style="font-size:0.62rem;">Partenaire</span>{% endif %}
+            {% if airline.is_partner %}<span class="badge badge-gold" style="font-size:0.62rem;">{% if current_lang=='fr' %}Partenaire{% else %}Partner{% endif %}</span>{% endif %}
           </div>
           {% if airline.alliance %}<p style="font-size:0.72rem;color:var(--text-sub);margin-bottom:8px;">{{ airline.alliance }}</p>{% endif %}
           <div style="display:flex;gap:12px;font-size:0.76rem;color:var(--text-muted);">
-            {% if airline.baggage_cabin_kg %}<span><i class="fa fa-suitcase" style="color:var(--gold);margin-right:4px;"></i>Cab. {{ airline.baggage_cabin_kg }}kg</span>{% endif %}
-            {% if airline.baggage_hold_kg %}<span><i class="fa fa-suitcase-rolling" style="color:var(--gold);margin-right:4px;"></i>Soute {{ airline.baggage_hold_kg }}kg</span>{% endif %}
+            {% if airline.baggage_cabin_kg %}<span><i class="fa fa-suitcase" style="color:var(--gold);margin-right:4px;"></i>{% if current_lang=='fr' %}Cab.{% else %}Cabin{% endif %} {{ airline.baggage_cabin_kg }}kg</span>{% endif %}
+            {% if airline.baggage_hold_kg %}<span><i class="fa fa-suitcase-rolling" style="color:var(--gold);margin-right:4px;"></i>{% if current_lang=='fr' %}Soute{% else %}Hold{% endif %} {{ airline.baggage_hold_kg }}kg</span>{% endif %}
           </div>
         </div>
         <i class="fa fa-chevron-right" style="color:var(--gold-dim);font-size:0.75rem;margin-top:4px;"></i>
       </a>
       {% else %}
-      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">Aucune compagnie disponible.</p>
+      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">{% if current_lang=='fr' %}Aucune compagnie disponible.{% else %}No airlines available.{% endif %}</p>
       {% endfor %}
     </div>
   </div>

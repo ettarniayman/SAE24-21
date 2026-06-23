@@ -25,8 +25,8 @@
           <td><p style="font-size:0.88rem;font-weight:600;color:var(--text-light);">{{ product.name_fr | truncate(45) }}</p><p style="font-size:0.72rem;color:var(--text-sub);font-family:monospace;">{{ product.slug }}</p></td>
           <td style="font-size:0.82rem;color:var(--text-muted);">{{ product.category.name_fr if product.category else '—' }}</td>
           <td>
-            <p style="font-size:0.9rem;color:var(--gold);font-weight:700;">{{ product.price_discounted or product.price }} MAD</p>
-            {% if product.price_discounted %}<p style="font-size:0.72rem;text-decoration:line-through;color:var(--text-sub);">{{ product.price }} MAD</p>{% endif %}
+            <p style="font-size:0.9rem;color:var(--gold);font-weight:700;">{{ product.price_discounted or product.price }} €</p>
+            {% if product.price_discounted %}<p style="font-size:0.72rem;text-decoration:line-through;color:var(--text-sub);">{{ product.price }} €</p>{% endif %}
           </td>
           <td style="font-size:0.84rem;">{{ 'Illimité' if product.stock == -1 else product.stock }}</td>
           <td><span class="badge {{ 'badge-muted' if product.is_affiliate else 'badge-success' }}">{{ 'Affiliation' if product.is_affiliate else 'Direct' }}</span></td>

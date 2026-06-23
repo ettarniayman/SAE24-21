@@ -18,8 +18,8 @@ COPY . .
 # Créer les répertoires d'upload
 RUN mkdir -p app/static/images/uploads app/static/images/destinations
 
-# Utilisateur non-root
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Utilisateur non-root, ajouté au groupe root pour lire /var/run/docker.sock (monté en lecture seule)
+RUN useradd -m -u 1000 -G root appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 5000

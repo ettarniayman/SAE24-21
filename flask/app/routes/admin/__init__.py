@@ -97,3 +97,4 @@ from . import media  # noqa: E402,F401
 from . import newsletter  # noqa: E402,F401
 from . import bookings  # noqa: E402,F401
 from . import orders  # noqa: E402,F401
+from . import reports  # noqa: E402,F401

@@ -44,6 +44,8 @@ services:
     volumes:
       - ./flask:/app
       - uploads_data:/app/app/static/images/uploads
+      - .:/host_data:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,6 +69,7 @@ services:
       - rtvoyage_net
     volumes:
       - ./flask/app/static:/var/www/static:ro
+      - uploads_data:/var/www/static/images/uploads:ro
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -83,6 +86,17 @@ services:
       - rtvoyage_net
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+
+  tftp:
+    image: pghalliday/tftp
+    container_name: pepiniere_tftp
+    restart: unless-stopped
+    ports:
+      - "69:69/udp"
+    volumes:
+      - ./tftp_data:/var/tftpboot
+    networks:
+      - rtvoyage_net
 
 volumes:
   postgres_data:

@@ -16,3 +16,5 @@ flask/app/static/images/uploads/*
 !flask/app/static/images/uploads/.gitkeep
 flask/app/static/images/destinations/*
 !flask/app/static/images/destinations/.gitkeep
+flask/app/reports/*
+!flask/app/reports/.gitkeep

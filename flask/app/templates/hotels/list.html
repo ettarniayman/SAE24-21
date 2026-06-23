@@ -1,12 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Hôtels & Hébergements — RT Voyage{% endblock %}
+{% block title %}{% if current_lang=='en' %}Hotels & Accommodations — RT Voyage{% else %}Hôtels & Hébergements — RT Voyage{% endif %}{% endblock %}
 
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><span>Hébergements</span></nav>
+    <nav class="breadcrumb"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><span>{% if current_lang=='fr' %}Hébergements{% else %}Accommodations{% endif %}</span></nav>
     <h1 class="page-hero__title">{% if current_lang=='en' %}Hotels & Accommodations{% else %}Hôtels & Hébergements{% endif %}</h1>
-    <p class="page-hero__sub">{{ pagination.total }} hébergements sélectionnés</p>
+    <p class="page-hero__sub">
+      {% if current_lang=='fr' %}{{ pagination.total }} hébergements sélectionnés
+      {% else %}{{ pagination.total }} selected accommodations{% endif %}
+    </p>
   </div>
 </div>
 
@@ -14,17 +17,17 @@
   <div class="container">
     <div class="filter-bar">
       <form method="GET" style="display:contents;">
-        <input type="text" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="Rechercher un hôtel…" style="min-width:220px;max-width:320px;">
+        <input type="text" name="q" value="{{ request.args.get('q','') }}" class="form-control" placeholder="{% if current_lang=='fr' %}Rechercher un hôtel…{% else %}Search a hotel…{% endif %}" style="min-width:220px;max-width:320px;">
         <select name="dest" class="form-control" style="max-width:200px;">
-          <option value="">Toutes destinations</option>
+          <option value="">{% if current_lang=='fr' %}Toutes destinations{% else %}All destinations{% endif %}</option>
           {% for dest in destinations %}
-          <option value="{{ dest.id }}" {{ 'selected' if request.args.get('dest')|int == dest.id }}>{{ dest.name_fr }}</option>
+          <option value="{{ dest.id }}" {{ 'selected' if request.args.get('dest')|int == dest.id }}>{{ dest.get_name(current_lang) }}</option>
           {% endfor %}
         </select>
         <select name="type" class="form-control" style="max-width:160px;">
-          <option value="">Tous types</option>
-          {% for t, lbl in [('hotel','Hôtel'),('riad','Riad'),('villa','Villa'),('resort','Resort'),('hostel','Hostel'),('apartment','Appartement')] %}
-          <option value="{{ t }}" {{ 'selected' if request.args.get('type')==t }}>{{ lbl }}</option>
+          <option value="">{% if current_lang=='fr' %}Tous types{% else %}All types{% endif %}</option>
+          {% for t, lbl_fr, lbl_en in [('hotel','Hôtel','Hotel'),('riad','Riad','Riad'),('villa','Villa','Villa'),('resort','Resort','Resort'),('hostel','Hostel','Hostel'),('apartment','Appartement','Apartment')] %}
+          <option value="{{ t }}" {{ 'selected' if request.args.get('type')==t }}>{{ lbl_fr if current_lang=='fr' else lbl_en }}</option>
           {% endfor %}
         </select>
         <div style="display:flex;gap:6px;">
@@ -34,7 +37,7 @@
           </a>
           {% endfor %}
         </div>
-        <button type="submit" class="btn btn-gold btn-sm"><i class="fa fa-search"></i> Filtrer</button>
+        <button type="submit" class="btn btn-gold btn-sm"><i class="fa fa-search"></i> {% if current_lang=='fr' %}Filtrer{% else %}Filter{% endif %}</button>
       </form>
     </div>
 
@@ -45,7 +48,7 @@
           <img src="{{ hotel.image_main or url_for('static',filename='images/placeholder-hotel.jpg') }}" alt="{{ hotel.name }}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
           <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;">
             <span class="badge badge-gold">{{ hotel.hotel_type | title }}</span>
-            {% if hotel.is_partner %}<span class="badge badge-success">Partenaire</span>{% endif %}
+            {% if hotel.is_partner %}<span class="badge badge-success">{% if current_lang=='fr' %}Partenaire{% else %}Partner{% endif %}</span>{% endif %}
           </div>
           <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(5,8,16,0.85));padding:20px 16px 14px;">
             <div style="display:flex;gap:2px;">
@@ -55,23 +58,23 @@
         </div>
         <div style="padding:18px 20px;">
           <h3 style="font-size:1rem;font-weight:700;color:var(--text-light);margin-bottom:4px;">{{ hotel.name }}</h3>
-          <p style="font-size:0.78rem;color:var(--text-sub);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i class="fa fa-map-marker-alt" style="color:var(--gold);font-size:0.7rem;"></i>{{ hotel.destination.name_fr if hotel.destination else '—' }}</p>
+          <p style="font-size:0.78rem;color:var(--text-sub);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i class="fa fa-map-marker-alt" style="color:var(--gold);font-size:0.7rem;"></i>{{ hotel.destination.get_name(current_lang) if hotel.destination else '—' }}</p>
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-            {% if hotel.has_pool %}<span style="font-size:0.68rem;padding:3px 8px;background:var(--bg-card2);border-radius:10px;color:var(--text-sub);"><i class="fa fa-swimming-pool"></i> Piscine</span>{% endif %}
+            {% if hotel.has_pool %}<span style="font-size:0.68rem;padding:3px 8px;background:var(--bg-card2);border-radius:10px;color:var(--text-sub);"><i class="fa fa-swimming-pool"></i> {% if current_lang=='fr' %}Piscine{% else %}Pool{% endif %}</span>{% endif %}
             {% if hotel.has_spa %}<span style="font-size:0.68rem;padding:3px 8px;background:var(--bg-card2);border-radius:10px;color:var(--text-sub);"><i class="fa fa-spa"></i> Spa</span>{% endif %}
             {% if hotel.has_wifi %}<span style="font-size:0.68rem;padding:3px 8px;background:var(--bg-card2);border-radius:10px;color:var(--text-sub);"><i class="fa fa-wifi"></i> WiFi</span>{% endif %}
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div>
-              <span style="font-size:0.68rem;color:var(--text-sub);">À partir de</span>
-              <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;line-height:1;">{{ hotel.price_min or '—' }} <span style="font-size:0.7rem;font-family:var(--font-sans);color:var(--text-sub);">MAD/nuit</span></p>
+              <span style="font-size:0.68rem;color:var(--text-sub);">{% if current_lang=='fr' %}À partir de{% else %}From{% endif %}</span>
+              <p style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);font-weight:700;line-height:1;">{{ hotel.price_min or '—' }} <span style="font-size:0.7rem;font-family:var(--font-sans);color:var(--text-sub);">{% if current_lang=='fr' %}€/nuit{% else %}€/night{% endif %}</span></p>
             </div>
-            <span class="btn btn-outline btn-sm">Voir</span>
+            <span class="btn btn-outline btn-sm">{% if current_lang=='fr' %}Voir{% else %}View{% endif %}</span>
           </div>
         </div>
       </a>
       {% else %}
-      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">Aucun hébergement trouvé.</p>
+      <p style="color:var(--text-sub);grid-column:1/-1;text-align:center;padding:60px;">{% if current_lang=='fr' %}Aucun hébergement trouvé.{% else %}No accommodations found.{% endif %}</p>
       {% endfor %}
     </div>
     {% include 'partials/_pagination.html' %}

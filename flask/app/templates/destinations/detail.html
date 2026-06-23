@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ dest.get_name(current_lang) }} — RT Voyage{% endblock %}
 {% block meta_desc %}{{ dest.get_short_desc(current_lang) or '' }}{% endblock %}
-{% block og_image %}{% if dest.image_main %}{% if dest.image_main.startswith('http') %}{{ dest.image_main }}{% else %}{{ url_for('static', filename='images/destinations/' ~ dest.image_main, _external=True) }}{% endif %}{% else %}{{ super() }}{% endif %}{% endblock %}
+{% block og_image %}{% if dest.image_main %}{% if dest.image_main.startswith('http') %}{{ dest.image_main }}{% else %}{{ (request.url_root | string).rstrip('/') }}{{ dest.image_main }}{% endif %}{% else %}{{ super() }}{% endif %}{% endblock %}
 
 {% block schema %}
 <script type="application/ld+json">
@@ -46,7 +46,7 @@
 
     <p class="dest-hero__country">
       {{ dest.country.flag_emoji if dest.country and dest.country.flag_emoji else '' }}
-      {{ dest.country.name_fr if dest.country else '' }}
+      {{ dest.country.name_fr if current_lang=='fr' else dest.country.name_en if dest.country else '' }}
       {% if dest.region %} — {{ dest.region }}{% endif %}
     </p>
     <h1 class="dest-hero__name">{{ dest.get_name(current_lang) }}</h1>
@@ -62,9 +62,10 @@
           <i class="fa fa-wallet"></i> ~{{ dest.average_budget_eur }}€/{% if current_lang=='fr' %}jour{% else %}day{% endif %}
         </span>
       {% endif %}
-      {% if dest.best_period_fr and current_lang == 'fr' %}
+      {% set best_period = dest.best_period_fr if current_lang == 'fr' else dest.best_period_en or dest.best_period_fr %}
+      {% if best_period %}
         <span class="dest-hero__badge">
-          <i class="fa fa-calendar-star"></i> {{ dest.best_period_fr }}
+          <i class="fa fa-calendar-star"></i> {{ best_period }}
         </span>
       {% endif %}
       <span class="dest-hero__badge">
@@ -106,8 +107,18 @@
             </button>
           {% endfor %}
         </div>
-        {% for tab_key, content_attr in [('history', dest.history_fr), ('culture', dest.culture_fr), ('gastronomy', dest.gastronomy_fr), ('climate', dest.climate_fr)] %}
+        {% for tab_key, content_attr in [
+          ('history', dest.history_fr if current_lang=='fr' else dest.history_en or dest.history_fr),
+          ('culture', dest.culture_fr if current_lang=='fr' else dest.culture_en or dest.culture_fr),
+          ('gastronomy', dest.gastronomy_fr if current_lang=='fr' else dest.gastronomy_en or dest.gastronomy_fr),
+          ('climate', dest.climate_fr if current_lang=='fr' else dest.climate_en or dest.climate_fr)
+        ] %}
           <div class="tab-content" id="tab-{{ tab_key }}" {% if not loop.first %}style="display:none;"{% endif %}>
+            {% set tab_media = (medias | selectattr('media_category', 'equalto', tab_key) | list | first) %}
+            {% if tab_media %}
+            <img src="{{ tab_media.file_path }}" alt="{{ tab_key }} — {{ dest.get_name(current_lang) }}" loading="lazy"
+                 style="width:100%;max-height:320px;object-fit:cover;border-radius:var(--radius-md);margin-bottom:20px;border:1px solid var(--gold-border);">
+            {% endif %}
             <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.9;">
               {{ content_attr or ('—' if current_lang=='fr' else '—') }}
             </p>
@@ -255,11 +266,9 @@
         <h2 style="font-family:var(--font-serif);font-size:1.8rem;margin:8px 0 20px;">
           {% if current_lang=='fr' %}Carte & <em style="color:var(--gold)">Localisation</em>{% else %}Map & <em style="color:var(--gold)">Location</em>{% endif %}
         </h2>
-        <div class="map-container" id="destMap" data-lat="{{ dest.latitude }}" data-lng="{{ dest.longitude }}" data-name="{{ dest.get_name(current_lang) }}"></div>
-        {% if dest.street_view_lat and dest.street_view_lng %}
-          <div class="map-container" style="margin-top:16px;height:350px;" id="streetView" data-sv-lat="{{ dest.street_view_lat }}" data-sv-lng="{{ dest.street_view_lng }}"></div>
-          <p style="font-size:0.72rem;color:var(--text-sub);margin-top:8px;text-align:center;">Google Street View — {{ dest.get_name(current_lang) }}</p>
-        {% endif %}
+        <div class="map-container" id="destMap" data-apikey="{{ google_maps_api_key }}" data-lat="{{ dest.latitude }}" data-lng="{{ dest.longitude }}" data-title="{{ dest.get_name(current_lang) }}"></div>
+        <div class="map-container" style="margin-top:16px;height:350px;position:relative;" id="destStreetView" data-lat="{{ dest.street_view_lat or dest.latitude }}" data-lng="{{ dest.street_view_lng or dest.longitude }}"></div>
+        <p id="streetViewCaption" style="font-size:0.72rem;color:var(--text-sub);margin-top:8px;text-align:center;">Google Street View — {{ dest.get_name(current_lang) }}</p>
       </section>
       {% endif %}
 
@@ -275,7 +284,7 @@
           <div class="card" style="padding:0;overflow:hidden;">
             <div style="display:flex;gap:0;">
               {% if hotel.image_main %}
-                {% if hotel.image_main.startswith('http') %}
+                {% if hotel.image_main.startswith('http') or hotel.image_main.startswith('/') %}
                   <img src="{{ hotel.image_main }}" alt="{{ hotel.name }}" loading="lazy"
                        style="width:110px;height:100%;object-fit:cover;flex-shrink:0;">
                 {% else %}
@@ -310,7 +319,7 @@
           {% endfor %}
         </div>
         <div style="text-align:center;margin-top:20px;">
-          <a href="{{ url_for('hotels.list_hotels', destination=dest.id) }}" class="btn btn-outline btn-sm">
+          <a href="{{ url_for('hotels.list_hotels', dest=dest.id) }}" class="btn btn-outline btn-sm">
             {% if current_lang=='fr' %}Tous les hôtels{% else %}All hotels{% endif %}
           </a>
         </div>
@@ -361,7 +370,7 @@
           {% if dest.country %}
           <li style="display:flex;gap:12px;font-size:0.84rem;">
             <i class="fa fa-globe" style="color:var(--gold);width:18px;margin-top:2px;flex-shrink:0;"></i>
-            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Pays{% else %}Country{% endif %}</strong><br><span style="color:var(--text-muted);">{{ dest.country.name_fr }}</span></span>
+            <span><strong style="color:var(--text-white);">{% if current_lang=='fr' %}Pays{% else %}Country{% endif %}</strong><br><span style="color:var(--text-muted);">{{ dest.country.name_fr if current_lang=='fr' else dest.country.name_en or dest.country.name_fr }}</span></span>
           </li>
           {% endif %}
           {% if dest.country and dest.country.currency %}
@@ -426,21 +435,15 @@
         <a href="{{ url_for('destinations.detail', slug=r.slug) }}" style="display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-dark);text-decoration:none;">
           {% if r.image_thumb or r.image_main %}
             {% set rel_img = r.image_thumb or r.image_main %}
-            {% if rel_img.startswith('http') %}
-              <img src="{{ rel_img }}" alt="{{ r.name_fr }}" loading="lazy"
-                   style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
-            {% else %}
-            <img src="{{ rel_img }}"
-     alt="{{ r.name_fr }}"
-     loading="lazy"
-     style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
-                   alt="{{ r.name_fr }}" loading="lazy"
-                   style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
-            {% endif %}
+            {% set rel_img_src = rel_img if rel_img.startswith('http') or rel_img.startswith('/') else url_for('static', filename='images/destinations/' ~ rel_img) %}
+            <img src="{{ rel_img_src }}"
+                 alt="{{ r.get_name(current_lang) }}"
+                 loading="lazy"
+                 style="width:60px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
           {% endif %}
           <div>
             <p style="font-size:0.86rem;color:var(--text-white);">{{ r.get_name(current_lang) }}</p>
-            <p style="font-size:0.72rem;color:var(--text-muted);">{{ r.country.name_fr if r.country else '' }}</p>
+            <p style="font-size:0.72rem;color:var(--text-muted);">{{ r.country.name_fr if current_lang=='fr' else r.country.name_en or r.country.name_fr if r.country else '' }}</p>
           </div>
         </a>
         {% endfor %}
@@ -456,7 +459,6 @@
 <script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
 {% if dest.latitude and dest.longitude %}
 <script src="{{ url_for('static', filename='js/maps.js') }}"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initDestinationMap"></script>
 {% endif %}
 <script>
 // Tabs

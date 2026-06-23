@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2026-06-22 20:56:41",
+    "service": "db",
+    "action": "BACKUP",
+    "status": "backup_20260622_205640.sql"
+  },
+  {
+    "timestamp": "2026-06-22 22:04:15",
+    "service": "tftp",
+    "action": "STOP",
+    "status": "manual"
+  },
+  {
+    "timestamp": "2026-06-22 22:04:24",
+    "service": "tftp",
+    "action": "START",
+    "status": "success"
+  },
+  {
+    "timestamp": "2026-06-23 02:43:40",
+    "service": "db",
+    "action": "BACKUP",
+    "status": "backup_20260623_024339.sql"
+  },
+  {
+    "timestamp": "2026-06-23 02:43:45",
+    "service": "web",
+    "action": "RESTART",
+    "status": "success"
+  }
+]

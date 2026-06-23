@@ -8,20 +8,20 @@
 <div class="dest-hero" style="background-image:url('{{ hotel.image_main or url_for('static',filename='images/placeholder-hotel.jpg') }}');">
   <div class="dest-hero__overlay"></div>
   <div class="container" style="position:relative;z-index:2;padding-top:120px;padding-bottom:60px;">
-    <nav class="breadcrumb" style="margin-bottom:16px;"><a href="{{ url_for('main.index') }}">Accueil</a><span>/</span><a href="{{ url_for('hotels.list_hotels') }}">Hébergements</a><span>/</span><span>{{ hotel.name }}</span></nav>
+    <nav class="breadcrumb" style="margin-bottom:16px;"><a href="{{ url_for('main.index') }}">{% if current_lang=='fr' %}Accueil{% else %}Home{% endif %}</a><span>/</span><a href="{{ url_for('hotels.list_hotels') }}">{% if current_lang=='fr' %}Hébergements{% else %}Accommodations{% endif %}</a><span>/</span><span>{{ hotel.name }}</span></nav>
     <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
       <div>
         <span class="badge badge-gold" style="margin-bottom:10px;">{{ hotel.hotel_type | title }}</span>
         <h1 style="font-family:var(--font-serif);font-size:clamp(2rem,5vw,3.5rem);color:#fff;font-weight:700;text-shadow:0 2px 12px rgba(0,0,0,0.6);">{{ hotel.name }}</h1>
         <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
           <div>{% for i in range(hotel.stars or 0) %}<span style="color:var(--gold);">★</span>{% endfor %}</div>
-          <span style="color:rgba(255,255,255,0.7);font-size:0.84rem;"><i class="fa fa-map-marker-alt" style="color:var(--gold);margin-right:4px;"></i>{{ hotel.destination.name_fr if hotel.destination else '—' }}{% if hotel.destination and hotel.destination.country %}, {{ hotel.destination.country.name_fr }}{% endif %}</span>
+          <span style="color:rgba(255,255,255,0.7);font-size:0.84rem;"><i class="fa fa-map-marker-alt" style="color:var(--gold);margin-right:4px;"></i>{{ hotel.destination.get_name(current_lang) if hotel.destination else '—' }}{% if hotel.destination and hotel.destination.country %}, {{ hotel.destination.country.name_fr if current_lang=='fr' else hotel.destination.country.name_en }}{% endif %}</span>
         </div>
       </div>
       <div style="margin-left:auto;background:rgba(5,8,16,0.7);backdrop-filter:blur(12px);border:1px solid var(--gold-border);border-radius:var(--radius-sm);padding:20px 28px;text-align:center;">
-        <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-sub);">À partir de</span>
+        <span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-sub);">{% if current_lang=='fr' %}À partir de{% else %}From{% endif %}</span>
         <p style="font-family:var(--font-serif);font-size:2.2rem;color:var(--gold);font-weight:700;line-height:1.1;">{{ hotel.price_min or '—' }}</p>
-        <span style="font-size:0.72rem;color:var(--text-sub);">MAD / nuit</span>
+        <span style="font-size:0.72rem;color:var(--text-sub);">{% if current_lang=='fr' %}€ / nuit{% else %}€ / night{% endif %}</span>
       </div>
     </div>
   </div>
@@ -32,28 +32,28 @@
     <div style="display:grid;grid-template-columns:1fr 340px;gap:40px;align-items:start;">
       <div>
         <div class="card" style="padding:32px;margin-bottom:24px;">
-          <h2 style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);margin-bottom:16px;">Description</h2>
+          <h2 style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);margin-bottom:16px;">{% if current_lang=='fr' %}Description{% else %}Description{% endif %}</h2>
           <div style="font-size:0.9rem;line-height:1.85;color:var(--text-muted);">
-            {{ (hotel.description_fr if current_lang=='fr' else hotel.description_en) | safe or 'Description non disponible.' }}
+            {{ (hotel.description_fr if current_lang=='fr' else hotel.description_en) | safe or ('Description non disponible.' if current_lang=='fr' else 'Description not available.') }}
           </div>
         </div>
 
         <div class="card" style="padding:32px;margin-bottom:24px;">
-          <h2 style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);margin-bottom:20px;">Équipements & Services</h2>
+          <h2 style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);margin-bottom:20px;">{% if current_lang=='fr' %}Équipements & Services{% else %}Amenities & Services{% endif %}</h2>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;">
-            {% for flag, ico, label in [
-              (hotel.has_pool,'fa-swimming-pool','Piscine'),
-              (hotel.has_spa,'fa-spa','Spa & Bien-être'),
-              (hotel.has_restaurant,'fa-utensils','Restaurant'),
-              (hotel.has_wifi,'fa-wifi','WiFi gratuit'),
-              (hotel.has_parking,'fa-parking','Parking'),
-              (hotel.has_gym,'fa-dumbbell','Salle de sport'),
-              (hotel.has_bar,'fa-glass-martini-alt','Bar & Lounge'),
-              (hotel.has_beach_access,'fa-umbrella-beach','Accès plage')
+            {% for flag, ico, label_fr, label_en in [
+              (hotel.has_pool,'fa-swimming-pool','Piscine','Pool'),
+              (hotel.has_spa,'fa-spa','Spa & Bien-être','Spa & Wellness'),
+              (hotel.has_restaurant,'fa-utensils','Restaurant','Restaurant'),
+              (hotel.has_wifi,'fa-wifi','WiFi gratuit','Free WiFi'),
+              (hotel.has_parking,'fa-parking','Parking','Parking'),
+              (hotel.has_gym,'fa-dumbbell','Salle de sport','Fitness Center'),
+              (hotel.has_bar,'fa-glass-martini-alt','Bar & Lounge','Bar & Lounge'),
+              (hotel.has_beach_access,'fa-umbrella-beach','Accès plage','Beach Access')
             ] %}
             <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:{{ 'var(--bg-card2)' if flag else 'transparent' }};border-radius:var(--radius-sm);opacity:{{ '1' if flag else '0.4' }};">
               <i class="fa {{ ico }}" style="color:var(--gold);width:16px;text-align:center;"></i>
-              <span style="font-size:0.84rem;color:{{ 'var(--text-muted)' if flag else 'var(--text-sub)' }};">{{ label }}</span>
+              <span style="font-size:0.84rem;color:{{ 'var(--text-muted)' if flag else 'var(--text-sub)' }};">{{ label_fr if current_lang=='fr' else label_en }}</span>
             </div>
             {% endfor %}
           </div>
@@ -75,28 +75,28 @@
 
       <div style="position:sticky;top:90px;">
         <div class="card" style="padding:28px;margin-bottom:20px;">
-          <h3 style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);margin-bottom:16px;">Réserver</h3>
+          <h3 style="font-family:var(--font-serif);font-size:1.3rem;color:var(--gold);margin-bottom:16px;">{% if current_lang=='fr' %}Réserver{% else %}Book{% endif %}</h3>
           {% if hotel.booking_url %}
           <a href="{{ hotel.booking_url }}" target="_blank" rel="noopener" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:10px;">
-            <i class="fa fa-calendar-check"></i> Vérifier disponibilités
+            <i class="fa fa-calendar-check"></i> {% if current_lang=='fr' %}Vérifier disponibilités{% else %}Check availability{% endif %}
           </a>
           {% endif %}
           <a href="{{ url_for('contact.index') }}" class="btn btn-outline" style="width:100%;justify-content:center;">
-            <i class="fa fa-envelope"></i> Demande personnalisée
+            <i class="fa fa-envelope"></i> {% if current_lang=='fr' %}Demande personnalisée{% else %}Custom request{% endif %}
           </a>
         </div>
 
         <div class="card" style="padding:28px;">
-          <h3 style="font-family:var(--font-serif);font-size:1.2rem;color:var(--gold);margin-bottom:14px;">Informations</h3>
+          <h3 style="font-family:var(--font-serif);font-size:1.2rem;color:var(--gold);margin-bottom:14px;">{% if current_lang=='fr' %}Informations{% else %}Information{% endif %}</h3>
           <table style="width:100%;font-size:0.82rem;border-collapse:collapse;">
-            {% for lbl, val in [
-              ('Type', hotel.hotel_type | title),
-              ('Étoiles', '★' * (hotel.stars or 0) if hotel.stars else '—'),
-              ('Destination', hotel.destination.name_fr if hotel.destination else '—'),
+            {% for lbl_fr, lbl_en, val in [
+              ('Type', 'Type', hotel.hotel_type | title),
+              ('Étoiles', 'Stars', '★' * (hotel.stars or 0) if hotel.stars else '—'),
+              ('Destination', 'Destination', hotel.destination.get_name(current_lang) if hotel.destination else '—'),
             ] %}
             {% if val is not none %}
             <tr style="border-bottom:1px solid var(--border-dark);">
-              <td style="padding:9px 0;color:var(--text-sub);">{{ lbl }}</td>
+              <td style="padding:9px 0;color:var(--text-sub);">{{ lbl_fr if current_lang=='fr' else lbl_en }}</td>
               <td style="padding:9px 0;color:var(--gold);text-align:right;">{{ val }}</td>
             </tr>
             {% endif %}

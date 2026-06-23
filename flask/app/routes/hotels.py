@@ -8,7 +8,7 @@ bp = Blueprint("hotels", __name__)
 @bp.route("/")
 def list_hotels():
     page = request.args.get("page", 1, type=int)
-    dest_id = request.args.get("destination", type=int)
+    dest_id = request.args.get("dest", type=int)
     hotel_type = request.args.get("type", "")
     stars = request.args.get("stars", type=int)
 
