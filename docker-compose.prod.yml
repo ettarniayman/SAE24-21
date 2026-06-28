@@ -1,0 +1,75 @@
+version: "3.9"
+# docker-compose.prod.yml — déploiement public minimal (pas de pgAdmin, pas de TFTP)
+# Usage : docker compose -f docker-compose.prod.yml up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rtvoyage_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rtvoyage}
+      POSTGRES_USER: ${POSTGRES_USER:-rtvoyage_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/schema/views_triggers.sql:/docker-entrypoint-initdb.d/02_views_triggers.sql:ro
+      - ./database/seed/seed.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
+    networks:
+      - rtvoyage_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rtvoyage_user} -d ${POSTGRES_DB:-rtvoyage}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flask:
+    build:
+      context: ./flask
+      dockerfile: Dockerfile
+    container_name: rtvoyage_flask
+    restart: unless-stopped
+    environment:
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-rtvoyage_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-rtvoyage}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      MAIL_SERVER: ${MAIL_SERVER:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    volumes:
+      - uploads_data:/app/app/static/images/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - rtvoyage_net
+    expose:
+      - "5000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: rtvoyage_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./flask/app/static:/var/www/static:ro
+      - uploads_data:/var/www/static/images/uploads:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - flask
+    networks:
+      - rtvoyage_net
+
+volumes:
+  postgres_data:
+  uploads_data:
+
+networks:
+  rtvoyage_net:
+    driver: bridge

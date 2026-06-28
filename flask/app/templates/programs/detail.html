@@ -1,6 +1,45 @@
 {% extends "base.html" %}
 {% block title %}{{ program.name_fr if current_lang=='fr' else program.name_en or program.name_fr }} — RT Voyage{% endblock %}
 
+{% block extra_css %}
+<style>
+.booking-modal-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(5,8,16,0.85); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+.booking-modal-backdrop.open { display: flex; }
+.booking-modal {
+  background: var(--bg-card); border: 1px solid var(--gold-border);
+  border-radius: var(--radius-lg); padding: 36px; max-width: 560px;
+  width: 92vw; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.booking-modal__title { font-family: var(--font-serif); font-size: 1.8rem; margin-bottom: 6px; }
+.booking-modal__subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 24px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.form-group label { font-size: 0.74rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.form-group input, .form-group select, .form-group textarea {
+  background: var(--bg-deep); border: 1px solid var(--border-dark);
+  color: var(--text-white); padding: 10px 14px; border-radius: var(--radius-sm);
+  font-family: var(--font-sans); font-size: 0.88rem; outline: none;
+  transition: var(--transition); width: 100%;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold-border); box-shadow: 0 0 0 3px var(--gold-glow); }
+.form-group textarea { resize: vertical; min-height: 90px; }
+.form-error { color: #e74c3c; font-size: 0.74rem; margin-top: 3px; }
+.booking-price-summary {
+  background: var(--gold-glow); border: 1px solid var(--gold-border);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 
 {# Hero #}
@@ -189,16 +228,19 @@
           <p style="font-size:1.2rem;color:var(--text-muted);">{% if current_lang=='fr' %}Sur devis{% else %}On request{% endif %}</p>
         {% endif %}
         <p style="font-size:0.76rem;color:var(--text-sub);margin-bottom:24px;">{{ program.duration_days }} {% if current_lang=='fr' %}jours / {{ program.duration_nights or program.duration_days - 1 }} nuits{% else %}days / {{ program.duration_nights or program.duration_days - 1 }} nights{% endif %}</p>
+        <button type="button" id="openBookingModal" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:10px;">
+          <i class="fa fa-calendar-check"></i> {% if current_lang=='fr' %}Réserver ce programme{% else %}Book this program{% endif %}
+        </button>
         <form method="POST" action="{{ url_for('cart.add') }}" style="margin-bottom:10px;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="item_type" value="program">
           <input type="hidden" name="program_id" value="{{ program.id }}">
           <input type="hidden" name="participants" value="1">
-          <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;">
+          <button type="submit" class="btn btn-outline" style="width:100%;justify-content:center;">
             <i class="fa fa-cart-plus"></i> {% if current_lang=='fr' %}Ajouter au panier{% else %}Add to cart{% endif %}
           </button>
         </form>
-        <a href="{{ url_for('contact.index') }}?sujet=information&programme={{ (program.name_fr if current_lang=='fr' else program.name_en or program.name_fr) | urlencode }}" class="btn btn-outline" style="width:100%;justify-content:center;">
+        <a href="{{ url_for('contact.index') }}?sujet=information&programme={{ (program.name_fr if current_lang=='fr' else program.name_en or program.name_fr) | urlencode }}" class="btn btn-ghost" style="width:100%;justify-content:center;">
           <i class="fa fa-question-circle"></i> {% if current_lang=='fr' %}Demander un devis{% else %}Request a quote{% endif %}
         </a>
       </div>
@@ -241,4 +283,125 @@
     </aside>
   </div>
 </div>
+
+{# Modal réservation #}
+<div class="booking-modal-backdrop {% if show_booking_modal is defined and show_booking_modal %}open{% endif %}" id="bookingModalBackdrop">
+  <div class="booking-modal" role="dialog" aria-modal="true" aria-label="Formulaire de réservation">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+      <div>
+        <p class="booking-modal__title">{% if current_lang=='fr' %}Réserver <em style="color:var(--gold)">ce programme</em>{% else %}Book <em style="color:var(--gold)">this program</em>{% endif %}</p>
+        <p class="booking-modal__subtitle">{{ program.name_fr if current_lang=='fr' else program.name_en or program.name_fr }} — {{ program.duration_days }}{% if current_lang=='fr' %}j{% else %}d{% endif %}</p>
+      </div>
+      <button type="button" id="closeBookingModal" style="background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:4px;"><i class="fa fa-times"></i></button>
+    </div>
+
+    <form method="POST" action="{{ url_for('programs.book', slug=program.slug) }}" id="bookingForm">
+      {{ booking_form.hidden_tag() }}
+
+      <div class="form-row">
+        <div class="form-group">
+          {{ booking_form.first_name.label }}
+          {{ booking_form.first_name(placeholder="Jean") }}
+          {% for e in booking_form.first_name.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ booking_form.last_name.label }}
+          {{ booking_form.last_name(placeholder="Dupont") }}
+          {% for e in booking_form.last_name.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          {{ booking_form.email.label }}
+          {{ booking_form.email(placeholder="jean@exemple.com", type="email") }}
+          {% for e in booking_form.email.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ booking_form.phone.label }}
+          {{ booking_form.phone(placeholder="+33 6 00 00 00 00") }}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          {{ booking_form.participants.label }}
+          {{ booking_form.participants(min=1, max=50, id="participantsInput") }}
+          {% for e in booking_form.participants.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ booking_form.nationality.label }}
+          {{ booking_form.nationality(placeholder="Française") }}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          {{ booking_form.departure_date.label }}
+          {{ booking_form.departure_date(type="date") }}
+          {% for e in booking_form.departure_date.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="form-group">
+          {{ booking_form.return_date.label }}
+          {{ booking_form.return_date(type="date") }}
+        </div>
+      </div>
+
+      {% if program.price_per_person %}
+      <div class="booking-price-summary">
+        <div>
+          <p style="font-size:0.72rem;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.08em;">{% if current_lang=='fr' %}Total estimé{% else %}Estimated total{% endif %}</p>
+          <p style="font-family:var(--font-serif);font-size:1.6rem;color:var(--gold);" id="totalPrice">
+            {{ (program.price_per_person_discounted or program.price_per_person) | int }}€
+          </p>
+        </div>
+        <div style="text-align:right;font-size:0.78rem;color:var(--text-muted);">
+          {{ program.price_per_person_discounted or program.price_per_person }}€ × <span id="paxCount">1</span> {% if current_lang=='fr' %}pers.{% else %}pax{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="form-group">
+        {{ booking_form.special_requests.label }}
+        {{ booking_form.special_requests(placeholder="{% if current_lang=='fr' %}Régime alimentaire, accessibilité, demandes particulières…{% else %}Dietary requirements, accessibility, special requests…{% endif %}") }}
+      </div>
+
+      <div style="display:none;">{{ booking_form.honeypot() }}</div>
+
+      <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;padding:14px;">
+        <i class="fa fa-paper-plane"></i>
+        {% if current_lang=='fr' %}Envoyer ma demande de réservation{% else %}Send my booking request{% endif %}
+      </button>
+      <p style="font-size:0.72rem;color:var(--text-sub);text-align:center;margin-top:10px;">
+        {% if current_lang=='fr' %}Nos équipes vous contacteront sous 24h pour confirmer votre réservation.{% else %}Our team will contact you within 24h to confirm your booking.{% endif %}
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const backdrop = document.getElementById('bookingModalBackdrop');
+const openBtn  = document.getElementById('openBookingModal');
+const closeBtn = document.getElementById('closeBookingModal');
+if (openBtn)  openBtn.addEventListener('click',  () => backdrop.classList.add('open'));
+if (closeBtn) closeBtn.addEventListener('click', () => backdrop.classList.remove('open'));
+backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.classList.remove('open'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') backdrop.classList.remove('open'); });
+
+const participantsInput = document.getElementById('participantsInput');
+const totalPriceEl = document.getElementById('totalPrice');
+const paxCountEl   = document.getElementById('paxCount');
+const unitPrice = {{ (program.price_per_person_discounted or program.price_per_person or 0) | float }};
+if (participantsInput && totalPriceEl) {
+  participantsInput.addEventListener('input', () => {
+    const n = parseInt(participantsInput.value) || 1;
+    if (paxCountEl) paxCountEl.textContent = n;
+    totalPriceEl.textContent = (unitPrice * n).toLocaleString('fr-FR') + '€';
+  });
+}
+const today = new Date().toISOString().split('T')[0];
+document.querySelectorAll('input[type="date"]').forEach(el => el.setAttribute('min', today));
+</script>
 {% endblock %}

@@ -86,8 +86,11 @@
   </a>
 
   <ul class="navbar__nav" id="navMenu">
-    <li><a href="{{ url_for('destinations.list_destinations') }}" {% if request.endpoint and 'destinations' in request.endpoint %}class="active"{% endif %}>
+    <li><a href="{{ url_for('destinations.list_destinations') }}" {% if request.endpoint == 'destinations.list_destinations' %}class="active"{% endif %}>
       {% if current_lang == 'fr' %}Destinations{% else %}Destinations{% endif %}
+    </a></li>
+    <li><a href="{{ url_for('destinations.map_view') }}" {% if request.endpoint == 'destinations.map_view' %}class="active"{% endif %}>
+      <i class="fa fa-map" style="font-size:0.85em;"></i> {% if current_lang == 'fr' %}Carte{% else %}Map{% endif %}
     </a></li>
     <li><a href="{{ url_for('programs.list_programs') }}" {% if request.endpoint and 'programs' in request.endpoint %}class="active"{% endif %}>
       {% if current_lang == 'fr' %}Programmes{% else %}Programs{% endif %}

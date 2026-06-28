@@ -1,6 +1,54 @@
 {% extends "base.html" %}
 {% block title %}{% if current_lang=='fr' %}Toutes les Destinations — RT Voyage{% else %}All Destinations — RT Voyage{% endif %}{% endblock %}
 
+{% block extra_css %}
+<style>
+.dest-filter-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dest-filter-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.dest-filter-label { font-size: 0.72rem; color: var(--text-sub); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+.budget-slider-wrap { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 180px; }
+#budgetSlider {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 4px; border-radius: 2px;
+  background: linear-gradient(to right, var(--gold) 0%, var(--gold) var(--pct, 100%), rgba(255,255,255,0.1) var(--pct, 100%));
+  outline: none; cursor: pointer;
+}
+#budgetSlider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--gold);
+  border: 2px solid var(--bg-deep); cursor: pointer;
+}
+.budget-value { font-size: 0.78rem; color: var(--gold); font-weight: 700; min-width: 60px; }
+.view-toggle-group { display: flex; gap: 6px; }
+.view-btn {
+  background: var(--bg-deep); border: 1px solid var(--border-dark);
+  color: var(--text-sub); padding: 7px 12px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: var(--transition); font-size: 0.8rem;
+}
+.view-btn.active, .view-btn:hover { border-color: var(--gold-border); color: var(--gold); background: var(--gold-glow); }
+.filter-pill {
+  background: var(--bg-deep); border: 1px solid var(--border-dark);
+  color: var(--text-muted); padding: 6px 14px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.filter-pill.active, .filter-pill:hover { background: var(--gold-glow); border-color: var(--gold-border); color: var(--gold); }
+.dest-card.hidden { display: none; }
+.grid-1 { grid-template-columns: 1fr !important; }
+.grid-1 .dest-card { display: flex; gap: 20px; }
+.grid-1 .dest-card .dest-card__img { width: 200px; flex-shrink: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="page-hero">
@@ -15,81 +63,122 @@
 </div>
 
 <section class="section section--sm">
-  {# Filter bar #}
-  <form class="filter-bar" method="GET" action="" id="filterForm">
-    <div style="display:flex;align-items:center;gap:8px;flex:1;">
-      <i class="fa fa-search" style="color:var(--text-sub);"></i>
-      <input type="text" name="q" value="{{ search }}" class="filter-input"
-             placeholder="{% if current_lang=='fr' %}Rechercher une destination…{% else %}Search a destination…{% endif %}"
-             id="searchInput">
-    </div>
 
-    <div style="display:flex;align-items:center;gap:8px;">
-      <label for="countryFilter">{% if current_lang=='fr' %}Pays{% else %}Country{% endif %}</label>
-      <select name="country" id="countryFilter" class="filter-select" onchange="this.form.submit()">
-        <option value="">{% if current_lang=='fr' %}Tous{% else %}All{% endif %}</option>
+  {# ── Panneau filtres avancés ── #}
+  <div class="dest-filter-panel">
+
+    {# Ligne 1 : recherche live + pays + tri + vue #}
+    <div class="dest-filter-row">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;background:var(--bg-deep);border:1px solid var(--border-dark);border-radius:var(--radius-sm);padding:0 14px;">
+        <i class="fa fa-search" style="color:var(--text-sub);font-size:0.85rem;"></i>
+        <input type="text" id="liveSearch" value="{{ search }}"
+               placeholder="{% if current_lang=='fr' %}Rechercher une destination…{% else %}Search a destination…{% endif %}"
+               style="border:none;background:transparent;padding:9px 0;outline:none;color:var(--text-white);font-family:var(--font-sans);font-size:0.88rem;width:100%;">
+      </div>
+
+      <select id="countryFilter" style="background:var(--bg-deep);border:1px solid var(--border-dark);color:var(--text-white);padding:9px 14px;border-radius:var(--radius-sm);font-family:var(--font-sans);font-size:0.84rem;outline:none;">
+        <option value="">{% if current_lang=='fr' %}Tous les pays{% else %}All countries{% endif %}</option>
         {% for c in countries %}
-          <option value="{{ c.id }}" {% if current_country == c.id %}selected{% endif %}>
+          <option value="{{ c.name_fr | lower }}">
             {{ c.flag_emoji or '' }} {{ c.name_fr if current_lang=='fr' else c.name_en or c.name_fr }}
           </option>
         {% endfor %}
       </select>
-    </div>
 
-    <div class="filter-toggle" role="group" aria-label="Type de destination">
-      <button type="submit" name="type" value="" class="{{ 'active' if not current_type }}">
-        {% if current_lang=='fr' %}Tout{% else %}All{% endif %}
-      </button>
-      <button type="submit" name="type" value="city" class="{{ 'active' if current_type=='city' }}">
-        <i class="fa fa-city"></i> {% if current_lang=='fr' %}Villes{% else %}Cities{% endif %}
-      </button>
-      <button type="submit" name="type" value="nature" class="{{ 'active' if current_type=='nature' }}">
-        <i class="fa fa-leaf"></i> Nature
-      </button>
-      <button type="submit" name="type" value="desert" class="{{ 'active' if current_type=='desert' }}">
-        <i class="fa fa-sun"></i> {% if current_lang=='fr' %}Désert{% else %}Desert{% endif %}
-      </button>
-      <button type="submit" name="type" value="mountain" class="{{ 'active' if current_type=='mountain' }}">
-        <i class="fa fa-mountain"></i> {% if current_lang=='fr' %}Montagne{% else %}Mountain{% endif %}
-      </button>
-      <button type="submit" name="type" value="beach" class="{{ 'active' if current_type=='beach' }}">
-        <i class="fa fa-umbrella-beach"></i> {% if current_lang=='fr' %}Plage{% else %}Beach{% endif %}
-      </button>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:8px;">
-      <label for="sortFilter">{% if current_lang=='fr' %}Tri{% else %}Sort{% endif %}</label>
-      <select name="sort" id="sortFilter" class="filter-select" onchange="this.form.submit()">
-        <option value="featured" {% if current_sort=='featured' %}selected{% endif %}>{% if current_lang=='fr' %}Recommandés{% else %}Featured{% endif %}</option>
-        <option value="popular" {% if current_sort=='popular' %}selected{% endif %}>{% if current_lang=='fr' %}Populaires{% else %}Popular{% endif %}</option>
-        <option value="budget" {% if current_sort=='budget' %}selected{% endif %}>{% if current_lang=='fr' %}Budget{% else %}Budget{% endif %}</option>
+      <select id="sortFilter" style="background:var(--bg-deep);border:1px solid var(--border-dark);color:var(--text-white);padding:9px 14px;border-radius:var(--radius-sm);font-family:var(--font-sans);font-size:0.84rem;outline:none;">
+        <option value="">{% if current_lang=='fr' %}Trier par…{% else %}Sort by…{% endif %}</option>
+        <option value="budget-asc">{% if current_lang=='fr' %}Budget croissant{% else %}Budget low→high{% endif %}</option>
+        <option value="budget-desc">{% if current_lang=='fr' %}Budget décroissant{% else %}Budget high→low{% endif %}</option>
+        <option value="name">{% if current_lang=='fr' %}Nom A→Z{% else %}Name A→Z{% endif %}</option>
       </select>
+
+      <div class="view-toggle-group">
+        <button class="view-btn active" id="viewGrid" title="Grille"><i class="fa fa-grid-2"></i></button>
+        <button class="view-btn" id="viewList" title="Liste"><i class="fa fa-list"></i></button>
+        <a href="{{ url_for('destinations.map_view') }}" class="view-btn" style="display:flex;align-items:center;" title="Carte interactive"><i class="fa fa-map"></i></a>
+      </div>
     </div>
 
-    <button type="submit" class="btn btn-gold btn-sm">
-      <i class="fa fa-filter"></i>
-      {% if current_lang=='fr' %}Filtrer{% else %}Filter{% endif %}
-    </button>
-    {% if search or current_type or current_country %}
-      <a href="{{ url_for('destinations.list_destinations') }}" class="btn btn-ghost btn-sm">
-        <i class="fa fa-times"></i>
-        {% if current_lang=='fr' %}Effacer{% else %}Clear{% endif %}
-      </a>
-    {% endif %}
-  </form>
+    {# Ligne 2 : types + budget slider #}
+    <div class="dest-filter-row" style="justify-content:space-between;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="typeFilters">
+        <button class="filter-pill active" data-type="">{% if current_lang=='fr' %}Tout{% else %}All{% endif %}</button>
+        <button class="filter-pill" data-type="city"><i class="fa fa-city"></i> {% if current_lang=='fr' %}Villes{% else %}Cities{% endif %}</button>
+        <button class="filter-pill" data-type="beach"><i class="fa fa-umbrella-beach"></i> {% if current_lang=='fr' %}Plage{% else %}Beach{% endif %}</button>
+        <button class="filter-pill" data-type="nature"><i class="fa fa-leaf"></i> Nature</button>
+        <button class="filter-pill" data-type="desert"><i class="fa fa-sun"></i> {% if current_lang=='fr' %}Désert{% else %}Desert{% endif %}</button>
+        <button class="filter-pill" data-type="mountain"><i class="fa fa-mountain"></i> {% if current_lang=='fr' %}Montagne{% else %}Mountain{% endif %}</button>
+        <button class="filter-pill" data-type="historical"><i class="fa fa-landmark"></i> {% if current_lang=='fr' %}Historique{% else %}Historical{% endif %}</button>
+      </div>
 
-  {# Results count #}
-  <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:24px;">
-    {{ pagination.total }} {% if current_lang=='fr' %}destination(s) trouvée(s){% else %}destination(s) found{% endif %}
-    {% if search %}{% if current_lang=='fr' %} pour « {{ search }} »{% else %} for "{{ search }}"{% endif %}{% endif %}
-  </p>
+      <div class="budget-slider-wrap">
+        <span class="dest-filter-label"><i class="fa fa-wallet"></i> Budget</span>
+        <input type="range" id="budgetSlider" min="0" max="5000" step="100" value="5000">
+        <span class="budget-value" id="budgetDisplay">5000€+</span>
+      </div>
+    </div>
+
+    {# Ligne 3 : compteur + reset #}
+    <div class="dest-filter-row" style="justify-content:space-between;">
+      <span style="font-size:0.82rem;color:var(--text-muted);">
+        <strong id="visibleCount">{{ destinations | length }}</strong>
+        / {{ pagination.total }} {% if current_lang=='fr' %}destinations{% else %}destinations{% endif %}
+      </span>
+      <button type="button" id="resetFilters" class="btn btn-ghost btn-sm">
+        <i class="fa fa-rotate-left"></i> {% if current_lang=='fr' %}Réinitialiser{% else %}Reset{% endif %}
+      </button>
+    </div>
+  </div>
 
   {# Grid #}
   {% if destinations %}
-    <div class="grid grid-auto" data-filter-grid>
+    <div class="grid grid-auto" id="destGrid">
       {% for dest in destinations %}
-        {% with dest=dest %}{% include 'partials/_destination_card.html' %}{% endwith %}
+        <article class="card dest-card" role="article"
+                 data-name="{{ dest.name_fr | lower }} {{ (dest.name_en or '') | lower }}"
+                 data-type="{{ dest.destination_type or '' }}"
+                 data-country="{{ dest.country.name_fr | lower if dest.country else '' }}"
+                 data-budget="{{ dest.average_budget_eur or 0 }}">
+          <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" aria-label="{{ dest.get_name(current_lang) }}">
+            <div class="dest-card__img">
+              {% if dest.image_main %}
+                {% set img_src = dest.image_main if dest.image_main.startswith('http') or dest.image_main.startswith('/') else url_for('static', filename='images/destinations/' ~ dest.image_main) %}
+                <img src="{{ img_src }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+              {% else %}
+                <img src="{{ url_for('static', filename='images/placeholder-dest.jpg') }}" alt="{{ dest.get_name(current_lang) }}" loading="lazy">
+              {% endif %}
+              <div class="dest-card__overlay"></div>
+              <span class="dest-card__badge">{{ dest.destination_type | title }}</span>
+              <span class="dest-card__country">{{ dest.country.flag_emoji if dest.country and dest.country.flag_emoji else '' }} {{ dest.country.name_fr if current_lang=='fr' else (dest.country.name_en if dest.country else '') }}</span>
+            </div>
+          </a>
+          <div class="dest-card__body">
+            <h3 class="dest-card__name">
+              <a href="{{ url_for('destinations.detail', slug=dest.slug) }}" style="color:inherit;">{{ dest.get_name(current_lang) }}</a>
+            </h3>
+            <p class="dest-card__desc">{{ dest.get_short_desc(current_lang) or '' }}</p>
+            <div class="dest-card__footer">
+              <div class="dest-card__rating">
+                <span class="stars">{% set r = dest.avg_rating | int %}{% for i in range(5) %}{% if i < r %}★{% else %}<span class="empty">☆</span>{% endif %}{% endfor %}</span>
+                <span style="color:var(--text-sub);font-size:0.74rem;">({{ dest.review_count }})</span>
+              </div>
+              <div class="dest-card__price">
+                {% if dest.average_budget_eur %}
+                  {% if current_lang == 'fr' %}À partir de{% else %}From{% endif %}
+                  <strong>{{ dest.average_budget_eur }}€</strong>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </article>
       {% endfor %}
+    </div>
+    <div id="noResults" style="display:none;text-align:center;padding:60px 0;">
+      <i class="fa fa-map-location-dot" style="font-size:3rem;color:var(--gold-dim);margin-bottom:20px;display:block;"></i>
+      <p style="font-size:1.1rem;color:var(--text-muted);">{% if current_lang=='fr' %}Aucune destination correspond à vos critères.{% else %}No destination matches your criteria.{% endif %}</p>
+      <button onclick="document.getElementById('resetFilters').click()" class="btn btn-outline" style="margin-top:20px;">
+        {% if current_lang=='fr' %}Réinitialiser les filtres{% else %}Reset filters{% endif %}
+      </button>
     </div>
   {% else %}
     <div style="text-align:center;padding:80px 0;">
@@ -103,5 +192,91 @@
 
   {% include 'partials/_pagination.html' %}
 </section>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+(function() {
+  const cards = Array.from(document.querySelectorAll('.dest-card'));
+  const countEl = document.getElementById('visibleCount');
+  const noResults = document.getElementById('noResults');
+  const grid = document.getElementById('destGrid');
+
+  let activeType = '', budgetMax = 5000, searchQ = '', country = '', sortMode = '';
+
+  function applyFilters() {
+    let filtered = cards.filter(c => {
+      const matchQ = !searchQ || (c.dataset.name || '').includes(searchQ);
+      const matchType = !activeType || c.dataset.type === activeType;
+      const matchCountry = !country || (c.dataset.country || '').includes(country);
+      const bgt = parseInt(c.dataset.budget) || 0;
+      const matchBudget = budgetMax >= 5000 || bgt === 0 || bgt <= budgetMax;
+      return matchQ && matchType && matchCountry && matchBudget;
+    });
+
+    if (sortMode === 'budget-asc') filtered.sort((a,b)=>(parseInt(a.dataset.budget)||9999)-(parseInt(b.dataset.budget)||9999));
+    else if (sortMode === 'budget-desc') filtered.sort((a,b)=>(parseInt(b.dataset.budget)||0)-(parseInt(a.dataset.budget)||0));
+    else if (sortMode === 'name') filtered.sort((a,b)=>(a.dataset.name||'').localeCompare(b.dataset.name||''));
+
+    const visible = new Set(filtered);
+    cards.forEach(c => {
+      c.classList.toggle('hidden', !visible.has(c));
+      if (visible.has(c) && grid) grid.appendChild(c);
+    });
+
+    if (countEl) countEl.textContent = filtered.length;
+    if (noResults) noResults.style.display = filtered.length === 0 ? 'block' : 'none';
+    if (grid) grid.style.display = filtered.length === 0 ? 'none' : '';
+  }
+
+  let debounce;
+  document.getElementById('liveSearch').addEventListener('input', e => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => { searchQ = e.target.value.toLowerCase(); applyFilters(); }, 200);
+  });
+
+  document.getElementById('countryFilter').addEventListener('change', e => { country = e.target.value; applyFilters(); });
+  document.getElementById('sortFilter').addEventListener('change', e => { sortMode = e.target.value; applyFilters(); });
+
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeType = btn.dataset.type;
+      applyFilters();
+    });
+  });
+
+  const slider = document.getElementById('budgetSlider');
+  const budgetDisplay = document.getElementById('budgetDisplay');
+  slider.addEventListener('input', () => {
+    budgetMax = parseInt(slider.value);
+    slider.style.setProperty('--pct', (budgetMax / 5000 * 100) + '%');
+    budgetDisplay.textContent = budgetMax >= 5000 ? '5000€+' : budgetMax + '€';
+    applyFilters();
+  });
+
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    searchQ = ''; country = ''; activeType = ''; sortMode = ''; budgetMax = 5000;
+    document.getElementById('liveSearch').value = '';
+    document.getElementById('countryFilter').value = '';
+    document.getElementById('sortFilter').value = '';
+    slider.value = 5000; slider.style.setProperty('--pct','100%');
+    budgetDisplay.textContent = '5000€+';
+    document.querySelectorAll('.filter-pill').forEach((b,i) => { b.classList.toggle('active', i===0); });
+    applyFilters();
+  });
+
+  document.getElementById('viewGrid').addEventListener('click', () => {
+    if (grid) grid.className = 'grid grid-auto';
+    document.getElementById('viewGrid').classList.add('active');
+    document.getElementById('viewList').classList.remove('active');
+  });
+  document.getElementById('viewList').addEventListener('click', () => {
+    if (grid) grid.className = 'grid grid-1';
+    document.getElementById('viewList').classList.add('active');
+    document.getElementById('viewGrid').classList.remove('active');
+  });
+})();
+</script>
 {% endblock %}

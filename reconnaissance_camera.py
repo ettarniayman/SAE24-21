@@ -183,6 +183,15 @@ def scan_qr_code(frame):
         return None
 
 
+def badge_to_name(qr_data: str) -> str:
+    """Convertit le contenu d'un badge QR (ex: BADGE-ETTARNI-AYMAN) en nom lisible (Ettarni Ayman)."""
+    text = qr_data.strip()
+    if text.upper().startswith("BADGE-"):
+        text = text[len("BADGE-"):]
+    parts = [p.capitalize() for p in text.replace("_", "-").split("-") if p]
+    return " ".join(parts) if parts else qr_data
+
+
 # ══════════════════════════════════════════════════════════════
 # CHARGEMENT DES VISAGES
 # ══════════════════════════════════════════════════════════════
@@ -248,8 +257,9 @@ def watch_stream(source, known_encodings, known_names,
         # 1. QR Code badge — vérifié à chaque frame (rapide)
         qr_data = scan_qr_code(frame)
         if qr_data:
-            log_entry(f"Badge:{qr_data}", camera_name, "badge", last_logged)
-            update_presence(f"Badge:{qr_data}", camera_name)
+            badge_name = badge_to_name(qr_data)
+            log_entry(badge_name, camera_name, "badge", last_logged)
+            update_presence(badge_name, camera_name)
 
         # 2. Détection de mouvement — filtre pour économiser le CPU
         if frame_count % FRAME_SKIP != 0:

@@ -1,0 +1,19 @@
+[Unit]
+Description=RTVoyage Flask Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/rtvoyage/flask
+EnvironmentFile=/var/www/rtvoyage/.env
+ExecStart=/var/www/rtvoyage/venv/bin/gunicorn -c gunicorn.conf.py wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rtvoyage
+
+[Install]
+WantedBy=multi-user.target

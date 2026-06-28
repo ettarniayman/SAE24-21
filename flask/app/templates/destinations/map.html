@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Carte des destinations — RT Voyage{% endblock %}
+{% block meta_desc %}Explorez toutes nos destinations sur la carte interactive. Trouvez votre prochaine aventure par type, budget ou région.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+.map-page { display: flex; flex-direction: column; min-height: calc(100vh - 60px); }
+.map-controls {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--gold-border);
+  padding: 16px 5vw;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.map-controls select, .map-controls input {
+  background: var(--bg-deep);
+  border: 1px solid var(--border-dark);
+  color: var(--text-white);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  outline: none;
+  transition: var(--transition);
+}
+.map-controls select:focus, .map-controls input:focus { border-color: var(--gold-border); }
+.map-controls__count { font-size: 0.78rem; color: var(--text-sub); margin-left: auto; }
+#map { flex: 1; min-height: 600px; z-index: 1; }
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--gold-border) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-white) !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7) !important;
+  padding: 0 !important;
+}
+.leaflet-popup-tip { background: var(--bg-card) !important; }
+.leaflet-popup-content { margin: 0 !important; width: 240px !important; }
+.map-popup { padding: 16px; }
+.map-popup__img { width: 100%; height: 130px; object-fit: cover; border-radius: 8px 8px 0 0; display: block; }
+.map-popup__body { padding: 14px; }
+.map-popup__country { font-size: 0.65rem; color: var(--gold); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+.map-popup__name { font-family: var(--font-serif); font-size: 1.15rem; margin-bottom: 6px; }
+.map-popup__desc { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
+.map-popup__meta { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.map-popup__badge { font-size: 0.65rem; padding: 3px 8px; border-radius: 20px; background: var(--gold-glow); border: 1px solid var(--gold-border); color: var(--gold); }
+.map-popup__btn { display: block; text-align: center; background: var(--gold); color: #050810; padding: 8px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; transition: var(--transition); }
+.map-popup__btn:hover { background: var(--gold-light); color: #050810; }
+.map-hero {
+  padding: 40px 5vw 24px;
+  text-align: center;
+  background: linear-gradient(to bottom, var(--bg-dark), var(--bg-deep));
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-hero">
+  <span class="s-tag">{% if current_lang=='fr' %}Exploration{% else %}Explore{% endif %}</span>
+  <h1 style="font-family:var(--font-serif);font-size:2.4rem;margin:8px 0 6px;">
+    {% if current_lang=='fr' %}Carte des <em style="color:var(--gold)">Destinations</em>{% else %}<em style="color:var(--gold)">Destination</em> Map{% endif %}
+  </h1>
+  <div class="gold-div" style="margin:0 auto 10px;"></div>
+  <p style="color:var(--text-muted);font-size:0.9rem;">
+    {% if current_lang=='fr' %}{{ total }} destinations à explorer dans le monde entier{% else %}{{ total }} destinations to explore worldwide{% endif %}
+  </p>
+</div>
+
+<div class="map-page">
+  <div class="map-controls">
+    <input type="text" id="mapSearch" placeholder="{% if current_lang=='fr' %}Rechercher…{% else %}Search…{% endif %}" style="min-width:180px;">
+    <select id="typeFilter">
+      <option value="">{% if current_lang=='fr' %}Tous les types{% else %}All types{% endif %}</option>
+      <option value="city">{% if current_lang=='fr' %}Villes{% else %}Cities{% endif %}</option>
+      <option value="beach">{% if current_lang=='fr' %}Plages{% else %}Beaches{% endif %}</option>
+      <option value="nature">{% if current_lang=='fr' %}Nature{% else %}Nature{% endif %}</option>
+      <option value="desert">{% if current_lang=='fr' %}Désert{% else %}Desert{% endif %}</option>
+      <option value="mountain">{% if current_lang=='fr' %}Montagne{% else %}Mountain{% endif %}</option>
+      <option value="historical">{% if current_lang=='fr' %}Historique{% else %}Historical{% endif %}</option>
+    </select>
+    <select id="budgetFilter">
+      <option value="">{% if current_lang=='fr' %}Tous les budgets{% else %}All budgets{% endif %}</option>
+      <option value="low">{% if current_lang=='fr' %}Économique (&lt; 800€){% else %}Budget (&lt; 800€){% endif %}</option>
+      <option value="mid">{% if current_lang=='fr' %}Moyen (800–2000€){% else %}Mid (800–2000€){% endif %}</option>
+      <option value="high">{% if current_lang=='fr' %}Luxe (&gt; 2000€){% else %}Luxury (&gt; 2000€){% endif %}</option>
+    </select>
+    <span class="map-controls__count" id="markerCount">{{ total }} {% if current_lang=='fr' %}destination(s){% else %}destination(s){% endif %}</span>
+  </div>
+
+  <div id="map"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+const RAW_MARKERS = {{ markers | tojson }};
+
+const TYPE_ICONS = {
+  city:       '🏙️',
+  beach:      '🏖️',
+  nature:     '🌿',
+  desert:     '🏜️',
+  mountain:   '⛰️',
+  historical: '🏛️',
+};
+
+const map = L.map('map', {
+  center: [20, 10],
+  zoom: 3,
+  zoomControl: true,
+  preferCanvas: true,
+});
+
+// Tuiles sombres CartoDB
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19,
+}).addTo(map);
+
+function makeIcon(type) {
+  const emoji = TYPE_ICONS[type] || '📍';
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:36px;height:36px;
+      border-radius:50% 50% 50% 0;
+      background:linear-gradient(135deg,#c9a96e,#8b6a3e);
+      border:2px solid rgba(255,255,255,0.3);
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px;
+      transform:rotate(-45deg);
+      box-shadow:0 3px 12px rgba(0,0,0,0.5);
+      cursor:pointer;
+    "><span style="transform:rotate(45deg)">${emoji}</span></div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -38],
+  });
+}
+
+function makePopup(m) {
+  const imgSrc = m.thumb
+    ? (m.thumb.startsWith('http') || m.thumb.startsWith('/') ? m.thumb : `/static/images/uploads/${m.thumb}`)
+    : '';
+  const budgetLabel = m.budget ? `${m.budget} €` : '';
+  const typeLabel = TYPE_ICONS[m.type] ? `${TYPE_ICONS[m.type]} ${m.type}` : m.type;
+  return `
+    <div class="leaflet-popup-content-wrapper" style="padding:0;">
+      ${imgSrc ? `<img class="map-popup__img" src="${imgSrc}" alt="${m.name}" loading="lazy">` : ''}
+      <div class="map-popup__body">
+        <p class="map-popup__country">${m.country}</p>
+        <p class="map-popup__name">${m.name}</p>
+        ${m.short_desc ? `<p class="map-popup__desc">${m.short_desc}</p>` : ''}
+        <div class="map-popup__meta">
+          ${typeLabel ? `<span class="map-popup__badge">${typeLabel}</span>` : ''}
+          ${budgetLabel ? `<span class="map-popup__badge">~${budgetLabel}/pers.</span>` : ''}
+        </div>
+        <a href="/destinations/${m.slug}" class="map-popup__btn">{% if current_lang=='fr' %}Voir la destination{% else %}View destination{% endif %} →</a>
+      </div>
+    </div>`;
+}
+
+let allMarkers = [];
+RAW_MARKERS.forEach(m => {
+  const marker = L.marker([m.lat, m.lng], { icon: makeIcon(m.type) })
+    .bindPopup(makePopup(m), { maxWidth: 260, className: 'map-custom-popup' });
+  marker._data = m;
+  marker.addTo(map);
+  allMarkers.push(marker);
+});
+
+function applyFilters() {
+  const q = document.getElementById('mapSearch').value.toLowerCase();
+  const type = document.getElementById('typeFilter').value;
+  const budget = document.getElementById('budgetFilter').value;
+  let count = 0;
+  allMarkers.forEach(marker => {
+    const m = marker._data;
+    const matchQ = !q || m.name.toLowerCase().includes(q) || m.country.toLowerCase().includes(q);
+    const matchType = !type || m.type === type;
+    let matchBudget = true;
+    if (budget === 'low') matchBudget = m.budget > 0 && m.budget < 800;
+    else if (budget === 'mid') matchBudget = m.budget >= 800 && m.budget <= 2000;
+    else if (budget === 'high') matchBudget = m.budget > 2000;
+    if (matchQ && matchType && matchBudget) {
+      marker.addTo(map);
+      count++;
+    } else {
+      map.removeLayer(marker);
+    }
+  });
+  document.getElementById('markerCount').textContent = `${count} destination(s)`;
+}
+
+document.getElementById('mapSearch').addEventListener('input', applyFilters);
+document.getElementById('typeFilter').addEventListener('change', applyFilters);
+document.getElementById('budgetFilter').addEventListener('change', applyFilters);
+</script>
+{% endblock %}

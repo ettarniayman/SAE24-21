@@ -1,6 +1,0 @@
-[2026-06-22 20:56:06] [INFO] Mode surveillance démarré (Ctrl+C pour arrêter).
-[2026-06-22 20:56:11] [INFO] Surveillance arrêtée.
-[2026-06-22 20:56:41] [OK] Sauvegarde créée : backup_20260622_205640.sql
-[2026-06-22 20:57:50] [INFO] Sauvegarde planifiée activée (tous les jours à 00:00). Ctrl+C pour arrêter.
-[2026-06-22 20:58:06] [OK] Rapport HTML généré : rapport_docker.html
-[2026-06-22 20:59:56] [WARN] Service inconnu : 'APACHE'. Disponibles : web, db, apache, pgadmin, tftp

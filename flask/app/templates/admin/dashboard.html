@@ -77,31 +77,81 @@
       <div class="admin-stat-card__label">Abonnés newsletter</div>
     </div>
   </div>
+  <div class="admin-stat-card" style="border-color:rgba(201,169,110,0.3);">
+    <div class="admin-stat-card__icon" style="background:rgba(201,169,110,0.12);color:var(--gold);"><i class="fa fa-euro-sign"></i></div>
+    <div>
+      <div class="admin-stat-card__num" style="color:var(--gold);">{{ revenue_this_month | int }}€</div>
+      <div class="admin-stat-card__label">Revenus ce mois</div>
+    </div>
+  </div>
+  <div class="admin-stat-card">
+    <div class="admin-stat-card__icon"><i class="fa fa-chart-line"></i></div>
+    <div>
+      <div class="admin-stat-card__num">{{ conversion_rate }}%</div>
+      <div class="admin-stat-card__label">Taux de conversion</div>
+    </div>
+  </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
-  {# Chart réservations #}
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:24px;">
+  {# Chart réservations + revenus (dual-axis) #}
   <div class="admin-box">
     <div class="admin-box__header">
-      <span class="admin-box__title"><i class="fa fa-chart-line" style="color:var(--gold);margin-right:8px;"></i> Réservations (12 derniers mois)</span>
+      <span class="admin-box__title"><i class="fa fa-chart-line" style="color:var(--gold);margin-right:8px;"></i> Réservations & Revenus (12 derniers mois)</span>
     </div>
     <div class="admin-box__body">
-      <div class="chart-wrap" style="height:250px;">
+      <div class="chart-wrap" style="height:260px;">
         <canvas id="bookingsChart"></canvas>
       </div>
     </div>
   </div>
 
-  {# Chart destinations #}
+  {# Chart top destinations par vues réelles #}
   <div class="admin-box">
     <div class="admin-box__header">
-      <span class="admin-box__title"><i class="fa fa-chart-pie" style="color:var(--gold);margin-right:8px;"></i> Destinations populaires</span>
+      <span class="admin-box__title"><i class="fa fa-chart-pie" style="color:var(--gold);margin-right:8px;"></i> Top destinations (vues)</span>
     </div>
     <div class="admin-box__body">
-      <div class="chart-wrap" style="height:250px;">
+      <div class="chart-wrap" style="height:260px;">
         <canvas id="destChart"></canvas>
       </div>
     </div>
+  </div>
+</div>
+
+{# Top programmes #}
+<div class="admin-box" style="margin-bottom:24px;">
+  <div class="admin-box__header">
+    <span class="admin-box__title"><i class="fa fa-fire" style="color:var(--gold);margin-right:8px;"></i> Top 5 programmes (réservations)</span>
+    <a href="{{ url_for('admin.program_list') }}" class="btn btn-ghost btn-sm">Tout voir</a>
+  </div>
+  <div class="admin-box__body" style="padding:0;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Programme</th>
+          <th>Thème</th>
+          <th>Prix</th>
+          <th>Réservations</th>
+          <th>Vues</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in top_programs %}
+        <tr>
+          <td style="color:var(--gold);font-weight:700;font-size:1rem;">{{ loop.index }}</td>
+          <td><a href="{{ url_for('programs.detail', slug=p.slug) }}" target="_blank" style="color:var(--text-white);font-size:0.84rem;">{{ p.name_fr[:35] ~ '…' if p.name_fr|length > 35 else p.name_fr }}</a></td>
+          <td><span class="badge badge-gold">{{ p.theme or '—' }}</span></td>
+          <td style="color:var(--gold);font-size:0.84rem;">{{ p.price_per_person_discounted or p.price_per_person or '—' }}{% if p.price_per_person %}€{% endif %}</td>
+          <td style="font-size:0.9rem;font-weight:600;">{{ p.booking_count or 0 }}</td>
+          <td style="font-size:0.82rem;color:var(--text-sub);">{{ p.view_count or 0 }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:var(--text-sub);padding:24px;">Aucun programme</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -229,49 +279,80 @@
 
 {% block extra_js %}
 <script>
-// Chart.js global defaults
 Chart.defaults.color = 'rgba(255,255,255,0.5)';
 Chart.defaults.borderColor = 'rgba(255,255,255,0.08)';
 Chart.defaults.font.family = 'Montserrat';
 Chart.defaults.font.size = 11;
 
-// Bookings chart (monthly simulation)
-const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-const bookingsData = [12,18,25,30,42,38,55,61,47,35,28,20];
+// Réservations par mois — données réelles DB
+const bookingsLabels = {{ bookings_labels | tojson }};
+const bookingsData   = {{ bookings_by_month | tojson }};
+const revenueData    = {{ revenue_by_month | tojson }};
+
 new Chart(document.getElementById('bookingsChart'), {
   type: 'line',
   data: {
-    labels: months,
-    datasets: [{
-      label: 'Réservations',
-      data: bookingsData,
-      borderColor: '#c9a96e',
-      backgroundColor: 'rgba(201,169,110,0.08)',
-      borderWidth: 2,
-      pointBackgroundColor: '#c9a96e',
-      pointRadius: 4,
-      fill: true,
-      tension: 0.4,
-    }]
+    labels: bookingsLabels,
+    datasets: [
+      {
+        label: 'Réservations',
+        data: bookingsData,
+        borderColor: '#c9a96e',
+        backgroundColor: 'rgba(201,169,110,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#c9a96e',
+        pointRadius: 4,
+        fill: true,
+        tension: 0.4,
+        yAxisID: 'y',
+      },
+      {
+        label: 'Revenus (€)',
+        data: revenueData,
+        borderColor: '#e8c99a',
+        backgroundColor: 'rgba(232,201,154,0.05)',
+        borderWidth: 1.5,
+        pointBackgroundColor: '#e8c99a',
+        pointRadius: 3,
+        fill: false,
+        tension: 0.4,
+        borderDash: [4, 3],
+        yAxisID: 'y2',
+      }
+    ]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: true, position: 'top', labels: { usePointStyle: true, padding: 16 } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.datasetIndex === 1
+            ? `Revenus : ${ctx.parsed.y.toLocaleString('fr-FR')} €`
+            : `Réservations : ${ctx.parsed.y}`
+        }
+      }
+    },
     scales: {
       x: { grid: { color: 'rgba(255,255,255,0.06)' } },
-      y: { grid: { color: 'rgba(255,255,255,0.06)' }, beginAtZero: true }
+      y: { grid: { color: 'rgba(255,255,255,0.06)' }, beginAtZero: true, position: 'left' },
+      y2: { grid: { display: false }, beginAtZero: true, position: 'right',
+             ticks: { callback: v => v.toLocaleString('fr-FR') + ' €' } }
     }
   }
 });
 
-// Destinations chart
+// Top destinations — vues réelles
+const destLabels = {{ top_dest_labels | tojson }};
+const destData   = {{ top_dest_data | tojson }};
 new Chart(document.getElementById('destChart'), {
   type: 'doughnut',
   data: {
-    labels: ['Maroc', 'Europe', 'Asie', 'Amériques', 'Moyen-Orient'],
+    labels: destLabels.length ? destLabels : ['Aucune donnée'],
     datasets: [{
-      data: [35, 25, 18, 12, 10],
+      data: destData.length ? destData : [1],
       backgroundColor: ['#c9a96e','#e8c99a','#8b6a3e','#5c4a2a','#3d3020'],
       borderColor: '#0f1325',
       borderWidth: 3,
@@ -281,7 +362,8 @@ new Chart(document.getElementById('destChart'), {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } },
+      tooltip: { callbacks: { label: ctx => `${ctx.label} : ${ctx.parsed} vues` } }
     }
   }
 });

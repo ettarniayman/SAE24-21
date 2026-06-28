@@ -103,3 +103,28 @@ def by_country(code):
     country = Country.query.filter_by(code=code.upper(), is_active=True).first_or_404()
     destinations = Destination.query.filter_by(country_id=country.id, is_active=True).all()
     return render_template("destinations/by_country.html", country=country, destinations=destinations)
+
+
+@bp.route("/carte")
+def map_view():
+    destinations = Destination.query.filter(
+        Destination.is_active == True,
+        Destination.latitude.isnot(None),
+        Destination.longitude.isnot(None),
+    ).all()
+    markers = [
+        {
+            "id": d.id,
+            "slug": d.slug,
+            "name": d.name_fr,
+            "lat": float(d.latitude),
+            "lng": float(d.longitude),
+            "type": d.destination_type or "city",
+            "country": d.country.name_fr if d.country else "",
+            "budget": d.average_budget_eur or 0,
+            "thumb": d.image_thumb or d.image_main or "",
+            "short_desc": (d.short_desc_fr or "")[:120],
+        }
+        for d in destinations
+    ]
+    return render_template("destinations/map.html", markers=markers, total=len(markers))

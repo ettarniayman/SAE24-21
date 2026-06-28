@@ -52,6 +52,10 @@ def super_admin_required(f):
 @admin_required
 def dashboard():
     from ...models.order import Order
+    from datetime import datetime, timedelta
+    from sqlalchemy import func, extract
+
+    now = datetime.utcnow()
 
     stats = {
         "destinations": Destination.query.count(),
@@ -65,17 +69,78 @@ def dashboard():
         "testimonials_pending": Testimonial.query.filter_by(is_approved=False).count(),
         "newsletter": NewsletterSubscriber.query.filter_by(is_active=True).count(),
     }
+
+    # Réservations par mois (12 derniers mois)
+    bookings_by_month = []
+    bookings_labels = []
+    month_names = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+    for i in range(11, -1, -1):
+        target = now - timedelta(days=i * 30)
+        count = Booking.query.filter(
+            extract("year", Booking.created_at) == target.year,
+            extract("month", Booking.created_at) == target.month,
+        ).count()
+        bookings_by_month.append(count)
+        bookings_labels.append(month_names[target.month - 1])
+
+    # Revenus par mois (orders)
+    revenue_by_month = []
+    for i in range(11, -1, -1):
+        target = now - timedelta(days=i * 30)
+        total = db.session.query(func.coalesce(func.sum(Order.total), 0)).filter(
+            extract("year", Order.created_at) == target.year,
+            extract("month", Order.created_at) == target.month,
+            Order.status.in_(["confirmed", "paid", "completed"]),
+        ).scalar()
+        revenue_by_month.append(float(total))
+
+    # Top 5 destinations par vue
+    top_destinations = Destination.query.order_by(
+        Destination.view_count.desc()
+    ).limit(5).all()
+    top_dest_labels = [d.name_fr for d in top_destinations]
+    top_dest_data = [d.view_count or 0 for d in top_destinations]
+
+    # Top 5 programmes par réservation
+    top_programs = TravelProgram.query.order_by(
+        TravelProgram.booking_count.desc()
+    ).limit(5).all()
+
+    # Revenus totaux ce mois
+    revenue_this_month = float(db.session.query(
+        func.coalesce(func.sum(Order.total), 0)
+    ).filter(
+        extract("year", Order.created_at) == now.year,
+        extract("month", Order.created_at) == now.month,
+        Order.status.in_(["confirmed", "paid", "completed"]),
+    ).scalar())
+
+    # Taux de conversion (réservations confirmées / total)
+    total_b = stats["bookings"]
+    confirmed_b = Booking.query.filter_by(status="confirmed").count()
+    conversion_rate = round((confirmed_b / total_b * 100), 1) if total_b > 0 else 0
+
     recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
     recent_orders = Order.query.order_by(Order.created_at.desc()).limit(5).all()
     recent_messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).limit(5).all()
     pending_testimonials = Testimonial.query.filter_by(is_approved=False).limit(5).all()
+
     return render_template(
         "admin/dashboard.html",
         stats=stats,
+        now=now,
         recent_bookings=recent_bookings,
         recent_orders=recent_orders,
         recent_messages=recent_messages,
         pending_testimonials=pending_testimonials,
+        bookings_by_month=bookings_by_month,
+        bookings_labels=bookings_labels,
+        revenue_by_month=revenue_by_month,
+        top_dest_labels=top_dest_labels,
+        top_dest_data=top_dest_data,
+        top_programs=top_programs,
+        revenue_this_month=revenue_this_month,
+        conversion_rate=conversion_rate,
     )
 
 

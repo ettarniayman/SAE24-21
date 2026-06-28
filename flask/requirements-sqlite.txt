@@ -1,0 +1,4 @@
+# Requirements pour déploiement SQLite (dev / CI / GitHub Actions)
+# Sans psycopg2 (pas de PostgreSQL)
+-r requirements.txt
+# Override : exclure psycopg2 en remplaçant par cette liste sans lui
